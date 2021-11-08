@@ -8,26 +8,26 @@ import uuid,os
 # Create your models here.
 
 class MyAccountManager(BaseUserManager):
-    def create_user(self,userEmail,username,password=None):
+    def create_user(self,userEmail,userName,password=None):
         if not userEmail:
             raise ValueError('Users must have an email address')
-        if not username:
+        if not userName:
             raise ValueError('Users must have a username')
 
         user = self.model(
             userEmail=self.normalize_email(userEmail),
-            userName=username,
+            userName=userName,
         )
 
         user.set_password(password)
         user.save(using=self.db)
         return user
 
-    def create_superuser(self, userEmail, username, password):
+    def create_superuser(self, userEmail, userName, password):
         user = self.create_user(
             userEmail=self.normalize_email(userEmail),
             password=password,
-            username=username,
+            username=userName,
         )
         user.is_admin = True
         user.is_staff = True
@@ -43,8 +43,8 @@ def get_file_path_user(instance, filename):
 class User(AbstractBaseUser):
     # userPassword = models.CharField(default='NULL',max_length=128, verbose_name='password')
     #
-    username = models.CharField(max_length=30,unique=True)
-    userEmail = models.EmailField(verbose_name="email",max_length=100,unique=True)
+    userName = models.CharField(max_length=30,unique=True)
+    userEmail = models.EmailField(max_length=100,unique=True)
     userPhone = models.CharField(max_length=30,null=True)
     userImage = models.ImageField(upload_to=get_file_path_user,default="default/default_user.png",null=True,blank=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
@@ -53,13 +53,13 @@ class User(AbstractBaseUser):
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
-    USERNAME_FIELD = 'username'
+    USERNAME_FIELD = 'userName'
     REQUIRED_FIELDS = ['userEmail']
 
     objects = MyAccountManager()
 
     def __str__(self):
-        return self.username
+        return self.userName
 
     # For checking permissions. to keep it simple all admin have ALL permissons
     def has_perm(self, perm, obj=None):
@@ -89,6 +89,9 @@ class Canteen(models.Model):
     canteenType = models.IntegerField()
     canteenOperationTime = models.CharField(max_length=100,blank=True)
 
+    def __str__(self):
+        return self.canteenName
+
 def get_file_path_stall(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (uuid.uuid4(), ext)
@@ -98,11 +101,20 @@ class Stall(models.Model):
     stallID = models.BigAutoField(primary_key=True)
     stallName = models.CharField(max_length=30,unique=True)
     stallAddress = models.CharField(max_length=60)
-    stallImage = models.ImageField(upload_to=get_file_path_stall,default="default/default_stall.jpg",null=True,blank=True)
     stallDescribe = models.CharField(max_length=300,blank=True)
-    stallRate = models.FloatField(blank=True)
-    stallRateNum = models.IntegerField(blank=True)
+    stallRate = models.FloatField(blank=True,null=True)
+    stallRateNum = models.IntegerField(blank=True,null=True)
     canteenID = models.ForeignKey(Canteen,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.stallName
+
+class StallImage(models.Model):
+    stallImage = models.ImageField(upload_to=get_file_path_stall,default="default/default_stall.png",null=True,blank=True)
+    stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.stallID)
 
 def get_file_path_dish(instance, filename):
     ext = filename.split('.')[-1]
@@ -124,9 +136,12 @@ class Dish(models.Model):
     dishImage = models.ImageField(upload_to=get_file_path_dish, default="default/default_dish.jpg", null=True,
                                    blank=True)
     dishDescribe = models.CharField(max_length=300, blank=True)
-    dishLikes = models.IntegerField(blank=True)
+    dishLikes = models.IntegerField(blank=True,null=True)
     dishAvailableTime = models.CharField(max_length=4, default='1234')
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return self.dishName
 
 def get_file_path_review(instance, filename):
     ext = filename.split('.')[-1]
@@ -136,32 +151,62 @@ def get_file_path_review(instance, filename):
 class Review(models.Model):
     reviewID = models.BigAutoField(primary_key=True)
     reviewDateTime = models.DateTimeField(auto_now=True)
-    reviewLikes = models.IntegerField(blank=True)
+    reviewLikes = models.IntegerField(blank=True,null=True)
     reviewComment = models.CharField(max_length=500,blank=True)
-    reviewImages = models.ImageField(upload_to=get_file_path_review, null=True,
-                                   blank=True)
     reviewTags = models.CharField(max_length=100,blank=True)
     reply = models.BooleanField(default=False)
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
     userID = models.ForeignKey(User,on_delete=models.CASCADE)
 
+    def __str__(self):
+        name = str(self.userID)+'_'+str(self.stallID)
+        return name
+
+class ReviewImage(models.Model):
+    reviewImages = models.ImageField(upload_to=get_file_path_review, null=True,
+                                   blank=True)
+    reviewID = models.ForeignKey(Review,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.reviewID)
+
 class DishReview(models.Model):
     reviewID = models.ForeignKey(Review,on_delete=models.CASCADE)
     dishID = models.ForeignKey(Dish,on_delete=models.CASCADE)
+
+    def __str__(self):
+        name = str(self.reviewID)+'_'+str(self.dishID)
+        return name
 
 class LikeReview(models.Model):
     userID = models.ForeignKey(User,on_delete=models.CASCADE)
     reviewID = models.ForeignKey(Review, on_delete=models.CASCADE)
 
+    def __str__(self):
+        name = str(self.userID)+'_'+str(self.reviewID)
+        return name
+
 class LikeDish(models.Model):
     userID = models.ForeignKey(User, on_delete=models.CASCADE)
     dishID = models.ForeignKey(Dish, on_delete=models.CASCADE)
+
+    def __str__(self):
+        name = str(self.userID)+'_'+str(self.dishID)
+        return name
 
 class UserStall(models.Model):
     userID = models.ForeignKey(User, on_delete=models.CASCADE)
     stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
 
+    def __str__(self):
+        name = str(self.userID)+'_'+str(self.stallID)
+        return name
+
 class Ratings(models.Model):
     stallRate = models.FloatField()
     userID = models.ForeignKey(User, on_delete=models.CASCADE)
     stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
+
+    def __str__(self):
+        name = str(self.userID)+'_'+str(self.stallID)
+        return name

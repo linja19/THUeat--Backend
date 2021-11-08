@@ -53,7 +53,7 @@ def user_register(request):
 def user_login(request):
     data = {}
     if request.method=='POST':
-        userName = request.data['username']
+        userName = request.data['userName']
         password = request.data['password']
         user = User.objects.get_by_natural_key(userName)
         if user.check_password(password):
@@ -77,7 +77,7 @@ def user_details(request):
         data['code'] = 200
         data['message'] = 'successful operation'
         data['data'] = {
-            "username": user.username,
+            "username": user.userName,
             "userEmail": user.userEmail,
             "userImage": user.userImage.url,
             "userPhone": user.userPhone
