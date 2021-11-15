@@ -8,14 +8,13 @@ import uuid,os
 # Create your models here.
 
 class MyAccountManager(BaseUserManager):
-    def create_user(self,userEmail,userName,password=None):
-        if not userEmail:
-            raise ValueError('Users must have an email address')
+    def create_user(self,userName,password=None):
+
         if not userName:
             raise ValueError('Users must have a username')
 
         user = self.model(
-            userEmail=self.normalize_email(userEmail),
+
             userName=userName,
         )
 
@@ -25,9 +24,9 @@ class MyAccountManager(BaseUserManager):
 
     def create_superuser(self, userEmail, userName, password):
         user = self.create_user(
-            userEmail=self.normalize_email(userEmail),
+            # userEmail=self.normalize_email(userEmail),
             password=password,
-            username=userName,
+            userName=userName,
         )
         user.is_admin = True
         user.is_staff = True
@@ -41,12 +40,9 @@ def get_file_path_user(instance, filename):
     return os.path.join("user",filename)
 
 class User(AbstractBaseUser):
-    # userPassword = models.CharField(default='NULL',max_length=128, verbose_name='password')
-    #
+
     userName = models.CharField(max_length=30,unique=True)
-    userEmail = models.EmailField(max_length=100,unique=True)
-    userPhone = models.CharField(max_length=30,null=True)
-    userImage = models.ImageField(upload_to=get_file_path_user,default="default/default_user.png",null=True,blank=True)
+    userPhone = models.CharField(max_length=30,null=True,blank=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_admin = models.BooleanField(default=False)
     is_active = models.BooleanField(default=True)
@@ -54,7 +50,7 @@ class User(AbstractBaseUser):
     is_superuser = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'userName'
-    REQUIRED_FIELDS = ['userEmail']
+    REQUIRED_FIELDS = []
 
     objects = MyAccountManager()
 
@@ -68,6 +64,21 @@ class User(AbstractBaseUser):
     # Does this user have permission to view this app? (ALWAYS YES FOR SIMPLICITY)
     def has_module_perms(self, app_label):
         return True
+
+class Student(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+    userImage = models.ImageField(upload_to=get_file_path_user,default="default/default_user.png",null=True,blank=True)
+    userEmail = models.EmailField(max_length=100, unique=True)
+
+    def __str__(self):
+        return str(self.user)
+
+class Staff(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+    first_login = models.BooleanField(default=True)
+
+    def __str__(self):
+        return str(self.user)
 
 @receiver(post_save,sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender,instance=None,created=False,**kwargs):

@@ -1,37 +1,52 @@
 from rest_framework import serializers
-from .models import User
+from .models import *
 
-class UserSerializer(serializers.ModelSerializer):
+class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['userName','password','userEmail']
+        fields = ['userName','password']            # field for this serializer (from User model)
         extra_kwargs = {
             'password':{'write_only':True},
         }
 
-    def save(self):
-        user = User(
-            userEmail=self.validated_data['userEmail'],
-            username=self.validated_data['userName']
+    def save(self):                                 # overwrite save function
+        user = User(                                # create User object
+            userName=self.validated_data['userName']
         )
         password = self.validated_data['password']
-        user.set_password(password)
+        user.set_password(password)                 # set user password
         user.save()
         return user
+
+class StudentRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['user','userEmail']               # field for this serializer (from Student model)
+
+    def save(self):                                 # overwrite save function
+        user = self.validated_data["user"]
+        student = Student(user=user,userEmail=self.validated_data['userEmail']) # create Student object
+        student.save()
+        return student
 
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ['userName','userEmail','userImage','userPhone']
-        # extra_kwargs = {
-        #     'password':{'write_only':True},
-        # }
+        fields = ['userName','userPhone']
 
-    def update(self,instance,validated_data):
-        instance.username = validated_data['userName']
-        instance.userEmail = validated_data['userEmail']
+    def update(self,instance,validated_data):       # overwrite update function
+        instance.userName = validated_data['userName']
         instance.userPhone = validated_data['userPhone']
-        instance.userImage = validated_data['userImage']
+        instance.save()
+        return instance
+
+class UpdateStudentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['userEmail','userImage']
+    def update(self,instance,validated_data):       # overwrite update function
+        instance.userEmail = validated_data['userEmail']
+        # instance.userImage = validated_data['userImage']
         instance.save()
         return instance
 
@@ -43,7 +58,7 @@ class UpdateUserPasswordSerializer(serializers.ModelSerializer):
             'password':{'write_only':True},
         }
 
-    def update(self,instance,validated_data):
+    def update(self,instance,validated_data):       # overwrite update function
         password = validated_data['password']
         instance.set_password(password)
         instance.save()
