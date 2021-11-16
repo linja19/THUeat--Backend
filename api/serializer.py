@@ -63,3 +63,19 @@ class UpdateUserPasswordSerializer(serializers.ModelSerializer):
         instance.set_password(password)
         instance.save()
         return instance
+
+class CreateReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Review
+        fields = ['reviewComment','reviewTags','stallID','userID']
+
+
+class CreateReviewImagesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ReviewImage
+        fields = ["reviewImages","reviewID"]
+
+class DishReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = DishReview
+        fields = ["reviewID","dishID"]

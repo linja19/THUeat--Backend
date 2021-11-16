@@ -9,6 +9,7 @@ from rest_framework.authtoken.views import obtain_auth_token
 from rest_framework.parsers import JSONParser
 from .models import User, Token
 from .serializer import *
+from .format import *
 import re
 
 # Create your views here.
@@ -32,6 +33,13 @@ def check_email_is_valid(email):
         return False
     else:
         return True
+
+def check_dish_is_valid(dish_list):                     # check a dish is existed or not
+    count = 1
+    for dish in dish_list:
+        if not Dish.objects.filter(dishID=dish).exists():
+            return False
+    return count
 
 @api_view(['GET'])
 def userlist(request):                              # check all user
@@ -115,6 +123,17 @@ def user_details(request):
             "userImage": student.userImage.url,
             "userPhone": user.userPhone
         }
+        review_list = Review.objects.filter(userID=user.pk)         # find user review
+        myReviews = []
+        for review in review_list:
+            myReviews.append(format_myreview(review))               # add review to myReviews
+        data["data"]["myReviews"] = myReviews
+        ratings_list = Ratings.objects.filter(userID=user.pk)       # find user ratings
+        myRatings = []
+        for ratings in ratings_list:
+            myRatings.append(format_myratings(ratings))             # add ratings to myRatings
+        data["data"]["myRatings"] = myRatings
+
         return Response(data)
     elif request.method=='POST':                                    # update user details
         user = get_user_by_request_token(request)                   # get user by token
@@ -166,4 +185,54 @@ def user_password(request):
         return Response(data)
 
 
+@api_view(["POST","GET"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def reviews(request):
+    data = {}
+    user = get_user_by_request_token(request)               # get user by token
+    if request.method=='POST':
+        review_data = {
+            "reviewComment":request.data["reviewComment"],
+            "reviewTags":request.data["reviewTags"],
+            "userID":user.pk,
+            "stallID":request.query_params["stallID"]
+        }
+        reviewserializer = CreateReviewSerializer(data=review_data)     # create reviewserializer
+        if (reviewserializer.is_valid())&(check_dish_is_valid(request.data["dishID"])):
+            review = reviewserializer.save()                            # save serializer to create primary key
+            for each in request.data["reviewImages"]:                   # for each image,create serializer and save
+                reviewimages_data = {
+                    "reviewID":review.pk,
+                    "reviewImages":each
+                }
+                imageserializer = CreateReviewImagesSerializer(data=reviewimages_data)
+                if imageserializer.is_valid():
+                    imageserializer.save()
+            for each in request.data["dishID"]:                         # for each dish,create serializer and save
+                dishreview_data = {
+                    "reviewID":review.pk,
+                    "dishID":each
+                }
+                serializer = DishReviewSerializer(data=dishreview_data)
+                if serializer.is_valid():
+                    serializer.save()
+            data["code"] = 200
+            data["messages"] = 'successful operation'
+        else:
+            data["code"] = 404
+            data["messages"] = 'dish not exists'
+    elif request.method=='GET':
+        review_list = Review.objects.filter(userID=user.pk,stallID=request.query_params["stallID"])     # find reviews
+        if review_list:
+            data["code"] = 200
+            data["messages"] = "successful operation"
+            response_data = []
+            for review in review_list:
+                response_data.append(format_review(review))         # add review to response data
+            data["data"] = response_data
+        else:
+            data["code"] = 404
+            data["messages"] = "review not found"
+    return Response(data)
 
