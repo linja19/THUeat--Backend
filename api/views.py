@@ -267,3 +267,45 @@ def reviews(request):
             data["messages"] = "unsuccessful"
     return Response(data)
 
+@api_view(["POST","DELETE"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def reviewslike(request,reviewID):
+    data = {}
+    user = get_user_by_request_token(request)  # get user by token
+    request_data = {
+        "userID":user.pk,
+        "reviewID":int(reviewID)
+    }
+    if request.method=="POST":
+        if LikeReview.objects.filter(userID=user.pk,reviewID=reviewID).exists():
+            data["code"] = 400
+            data["messages"] = "User already like this review"
+        else:
+            serializer = LikeReviewSerializer(data=request_data)
+            if serializer.is_valid():
+                serializer.save()
+                review = Review.objects.get(reviewID=reviewID)
+                if review.reviewLikes:
+                    review.reviewLikes += 1
+                else:
+                    review.reviewLikes = 1
+                review.save()
+                data["code"] = 200
+                data["messages"] = "successful operation"
+            else:
+                data["code"] = 400
+                data["messages"] = "review not found"
+    elif request.method=="DELETE":
+        likereivew = LikeReview.objects.filter(userID=user.pk, reviewID=reviewID)
+        if likereivew:
+            likereivew.delete()
+            review = Review.objects.get(reviewID=reviewID)
+            review.reviewLikes -= 1
+            review.save()
+            data["code"] = 200
+            data["messages"] = "successful operation"
+        else:
+            data["code"] = 404
+            data["messages"] = "user hasn't like this review"
+    return Response(data)

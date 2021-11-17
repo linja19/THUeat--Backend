@@ -69,7 +69,6 @@ class CreateReviewSerializer(serializers.ModelSerializer):
         model = Review
         fields = ['reviewComment','reviewTags','stallID','userID']
 
-
 class CreateReviewImagesSerializer(serializers.ModelSerializer):
     class Meta:
         model = ReviewImage
@@ -79,3 +78,8 @@ class DishReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = DishReview
         fields = ["reviewID","dishID"]
+
+class LikeReviewSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LikeReview
+        fields = ["userID","reviewID"]
