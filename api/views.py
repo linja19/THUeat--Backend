@@ -294,12 +294,12 @@ def reviewslike(request,reviewID):
                 data["code"] = 200
                 data["messages"] = "successful operation"
             else:
-                data["code"] = 400
+                data["code"] = 404
                 data["messages"] = "review not found"
     elif request.method=="DELETE":
-        likereivew = LikeReview.objects.filter(userID=user.pk, reviewID=reviewID)
-        if likereivew:
-            likereivew.delete()
+        likereview = LikeReview.objects.filter(userID=user.pk, reviewID=reviewID)
+        if likereview:
+            likereview.delete()
             review = Review.objects.get(reviewID=reviewID)
             review.reviewLikes -= 1
             review.save()
