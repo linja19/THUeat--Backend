@@ -173,6 +173,12 @@ class Review(models.Model):
         name = str(self.userID)+'_'+str(self.stallID)
         return name
 
+class ReplyByStaff(models.Model):
+    parent_reviewID = models.ForeignKey(Review,on_delete=models.CASCADE)
+    stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
+    replyContent = models.CharField(max_length=500,blank=True)
+    replyDateTime = models.DateTimeField(auto_now=True)
+
 class ReviewImage(models.Model):
     reviewImages = models.ImageField(upload_to=get_file_path_review, null=True,
                                    blank=True)
@@ -221,3 +227,22 @@ class Ratings(models.Model):
     def __str__(self):
         name = str(self.userID)+'_'+str(self.stallID)
         return name
+
+def get_file_path_notice(instance, filename):
+    ext = filename.split('.')[-1]
+    filename = "%s.%s" % (uuid.uuid4(), ext)
+    return os.path.join("notice",filename)
+
+class Notice(models.Model):
+    ADS = "ADVERTISEMENT"
+    NOTICE = "NOTICE"
+    CHOICES = (
+        (ADS,"ADVERTISEMENT"),
+        (NOTICE,"NOTICE")
+    )
+
+    noticeImage = models.ImageField(upload_to=get_file_path_notice, null=True,
+                                   blank=True)
+    noticeCreateTime = models.DateTimeField(auto_created=True)
+    noticeType = models.CharField(max_length=20,choices=CHOICES)
+    noticeName = models.CharField(max_length=50)
