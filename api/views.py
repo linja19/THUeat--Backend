@@ -185,7 +185,7 @@ def user_password(request):
         return Response(data)
 
 
-@api_view(["POST","GET"])
+@api_view(["POST","GET","DELETE"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
 def reviews(request):
@@ -234,5 +234,17 @@ def reviews(request):
         else:
             data["code"] = 404
             data["messages"] = "review not found"
+    elif request.method=='DELETE':
+        reviewID = request.query_params["reviewID"]
+        try:
+            Review.objects.get(reviewID=reviewID).delete()
+            data["code"] = 200
+            data["messages"] = "successful operation"
+        except Review.DoesNotExist:
+            data["code"] = 404
+            data["messages"] = "review not exist"
+        else:
+            data["code"] = 400
+            data["messages"] = "unsuccessful"
     return Response(data)
 
