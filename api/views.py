@@ -192,11 +192,17 @@ def reviews(request):
     data = {}
     user = get_user_by_request_token(request)               # get user by token
     if request.method=='POST':
+        try:                                                # find stallID in url
+            stallID = request.query_params["stallID"]
+        except:
+            data["code"] = 404
+            data["messages"] = "stallID not found"
+            return Response(data)
         review_data = {
             "reviewComment":request.data["reviewComment"],
             "reviewTags":request.data["reviewTags"],
             "userID":user.pk,
-            "stallID":request.query_params["stallID"]
+            "stallID":stallID
         }
         reviewserializer = CreateReviewSerializer(data=review_data)     # create reviewserializer
         if (reviewserializer.is_valid())&(check_dish_is_valid(request.data["dishID"])):
@@ -223,19 +229,32 @@ def reviews(request):
             data["code"] = 404
             data["messages"] = 'dish not exists'
     elif request.method=='GET':
-        review_list = Review.objects.filter(userID=user.pk,stallID=request.query_params["stallID"])     # find reviews
+        try:                                                # find stallID in url
+            stallID = request.query_params["stallID"]
+        except:
+            data["code"] = 404
+            data["messages"] = "stallID not found"
+            return Response(data)
+
+        review_list = Review.objects.filter(userID=user.pk, stallID=stallID)  # find reviews
         if review_list:
             data["code"] = 200
             data["messages"] = "successful operation"
             response_data = []
             for review in review_list:
-                response_data.append(format_review(review))         # add review to response data
+                response_data.append(format_review(review))  # add review to response data
             data["data"] = response_data
         else:
             data["code"] = 404
             data["messages"] = "review not found"
+
     elif request.method=='DELETE':
-        reviewID = request.query_params["reviewID"]
+        try:                                                # find reviewID in url
+            reviewID = request.query_params["reviewID"]
+        except:
+            data["code"] = 404
+            data["messages"] = "reviewID not found"
+            return Response(data)
         try:
             Review.objects.get(reviewID=reviewID).delete()
             data["code"] = 200
