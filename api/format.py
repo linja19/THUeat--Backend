@@ -4,6 +4,7 @@ def format_review(review):
     image_list = ReviewImage.objects.filter(reviewID=review.pk)
     dishreview_list = DishReview.objects.filter(reviewID=review.pk)
     data = {}
+    data["reviewID"] = review.reviewID
     data["reviewDateTime"] = review.reviewDateTime
     data["reviewComment"] = review.reviewComment
     data["reviewImages"] = [image.reviewImages.url for image in image_list]
@@ -27,6 +28,7 @@ def format_myreview(review):
     data = {}
     data["stallID"] = review.stallID.pk
     data["stallName"] = Stall.objects.get(stallID=review.stallID.pk).stallName
+    data["reviewID"] = review.reviewID
     data["reviewDateTime"] = review.reviewDateTime
     data["reviewComment"] = review.reviewComment
     data["reviewImages"] = [image.reviewImages.url for image in image_list]

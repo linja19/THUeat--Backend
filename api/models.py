@@ -161,7 +161,7 @@ def get_file_path_review(instance, filename):
 
 class Review(models.Model):
     reviewID = models.BigAutoField(primary_key=True)
-    reviewDateTime = models.DateTimeField(auto_now=True)
+    reviewDateTime = models.DateTimeField(auto_now_add=True)
     reviewLikes = models.IntegerField(blank=True,null=True)
     reviewComment = models.CharField(max_length=500,blank=True)
     reviewTags = models.CharField(max_length=100,blank=True)
@@ -177,7 +177,7 @@ class ReplyByStaff(models.Model):
     parent_reviewID = models.ForeignKey(Review,on_delete=models.CASCADE)
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
     replyContent = models.CharField(max_length=500,blank=True)
-    replyDateTime = models.DateTimeField(auto_now=True)
+    replyDateTime = models.DateTimeField(auto_now_add=True)
 
 class ReviewImage(models.Model):
     reviewImages = models.ImageField(upload_to=get_file_path_review, null=True,
