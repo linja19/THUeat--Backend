@@ -309,3 +309,72 @@ def reviewslike(request,reviewID):
             data["code"] = 404
             data["messages"] = "user hasn't like this review"
     return Response(data)
+
+@api_view(["POST","DELETE","GET"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+def dishes(request,dishID):
+    data = {}
+    if request.method=="POST":
+        try:
+            user = get_user_by_request_token(request)  # get user by token
+        except:
+            data["code"] = 400
+            data["messages"] = "Token not provided"
+            return Response(data)
+        request_data = {
+            "userID": user.pk,
+            "dishID": int(dishID)
+        }
+        if LikeDish.objects.filter(userID=user.pk,dishID=dishID).exists():
+            data["code"] = 400
+            data["messages"] = "user already like this dish"
+        else:
+            serializer = LikeDishSerializer(data=request_data)
+            if serializer.is_valid():
+                serializer.save()
+                dish = Dish.objects.get(dishID=dishID)
+                if dish.dishLikes:
+                    dish.dishLikes += 1
+                else:
+                    dish.dishLikes = 1
+                dish.save()
+                data["code"] = 200
+                data["messages"] = "successful operation"
+            else:
+                data = serializer.errors
+    elif request.method=="DELETE":
+        try:
+            user = get_user_by_request_token(request)  # get user by token
+        except:
+            data["code"] = 400
+            data["messages"] = "Token not provided"
+            return Response(data)
+        likedish = LikeDish.objects.filter(userID=user.pk,dishID=dishID)
+        if likedish:
+            likedish.delete()
+            dish = Dish.objects.get(dishID=dishID)
+            dish.dishLikes -= 1
+            dish.save()
+            data["code"] = 200
+            data["messages"] = "successful operation"
+        else:
+            data["code"] = 404
+            data["messages"] = "user hasn't like this dish"
+    elif request.method=="GET":
+        try:
+            user = get_user_by_request_token(request)  # get user by token
+            login = True
+        except:
+            user = 0
+            login = False
+
+        try:
+            dish = Dish.objects.get(dishID=dishID)
+            data["code"] = 200
+            messages = format_dish(dish, user, login)
+            data["messages"] = messages
+        except:
+            data["code"] = 404
+            data["messages"] = "dish not found"
+    return Response(data)

@@ -83,3 +83,8 @@ class LikeReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = LikeReview
         fields = ["userID","reviewID"]
+
+class LikeDishSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LikeDish
+        fields = ["userID","dishID"]
