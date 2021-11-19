@@ -147,7 +147,7 @@ class Dish(models.Model):
     dishImage = models.ImageField(upload_to=get_file_path_dish, default="default/default_dish.jpg", null=True,
                                    blank=True)
     dishDescribe = models.CharField(max_length=300, blank=True)
-    dishLikes = models.IntegerField(blank=True,null=True)
+    dishLikes = models.IntegerField(default=0,blank=True,null=True)
     dishAvailableTime = models.CharField(max_length=4, default='1234')
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
 
@@ -162,7 +162,7 @@ def get_file_path_review(instance, filename):
 class Review(models.Model):
     reviewID = models.BigAutoField(primary_key=True)
     reviewDateTime = models.DateTimeField(auto_now_add=True)
-    reviewLikes = models.IntegerField(blank=True,null=True)
+    reviewLikes = models.IntegerField(default=0,blank=True,null=True)
     reviewComment = models.CharField(max_length=500,blank=True)
     reviewTags = models.CharField(max_length=100,blank=True)
     reply = models.BooleanField(default=False)

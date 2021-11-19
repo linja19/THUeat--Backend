@@ -10,4 +10,5 @@ urlpatterns = [
     path('users/password', views.user_password, name="user-detail-password"),
     path('reviews', views.reviews, name="review"),
     path('reviews/like/<int:reviewID>', views.reviewslike, name="review-like"),
+    path('dishes/<int:dishID>', views.dishes, name="dishes"),
 ]
