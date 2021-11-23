@@ -367,6 +367,10 @@ def dishes(request,dishID):
             data["code"] = 400
             data["messages"] = "Token not provided"
             return Response(data)
+        if not user.is_active:
+            data["code"] = 400
+            data["messages"] = "User inactivated"
+            return Response(data)
         request_data = {
             "userID": user.pk,
             "dishID": int(dishID)
