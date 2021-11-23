@@ -31,3 +31,13 @@ class StaffRegisterSerializer(serializers.ModelSerializer):
         staff = Staff(user=user,stallID=stallID) # create Student object
         staff.save()
         return staff
+
+class UpdateUserStatusSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['is_active']
+
+    def update(self, instance, validated_data):  # overwrite update function
+        instance.is_active = validated_data['is_active']
+        instance.save()
+        return instance

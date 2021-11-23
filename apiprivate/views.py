@@ -6,6 +6,7 @@ from rest_framework.authentication import TokenAuthentication
 from rest_framework.permissions import IsAuthenticated
 from .serializer import *
 from .permissions import *
+from .format import *
 
 @api_view(['POST'])
 def login(request):
@@ -72,7 +73,7 @@ def check_stallID_is_valid(stallID):
         return True
     return False
 
-@api_view(['POST'])
+@api_view(['POST','GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAdmin])
 def createstaff(request):
@@ -99,6 +100,8 @@ def createstaff(request):
                 token = Token.objects.get(user=user).key
                 data['data'] = {
                     "token":token,
+                    "staffName":user.userName,
+                    "staffPhone":user.userPhone,
                     "staffPassword":password
                 }
         else:
@@ -109,5 +112,176 @@ def createstaff(request):
             if not Stall.objects.filter(stallID=request.data["stallID"]).exists():
                 message.append("stallID不存在")
             data["message"] = message
+    elif request.method=="GET":
+        try:
+            stallID = request.query_params["stallID"]
+            stafflist = Staff.objects.filter(stallID=int(stallID))
+            datalist = format_stafflist(stafflist)
+        except:
+            try:
+                canteenID = request.query_params["canteenID"]
+                stalllist = Stall.objects.filter(canteenID=int(canteenID))
+                list = []
+                for stall in stalllist:
+                    stafflist = Staff.objects.filter(stallID=stall.stallID)
+                    list += format_stafflist(stafflist)
+                datalist = list
+            except:
+                stafflist = Staff.objects.all()
+                datalist = format_stafflist(stafflist)
 
+
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = datalist
+
+    return Response(data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def staffstatus(request,staffID):
+    data = {}
+    if request.method=="POST":
+        try:
+            user = User.objects.get(id=int(staffID))
+            if user.is_admin == True or user.is_superuser == True:
+                data["code"] = 400
+                data["message"] = "no permission"
+                return Response(data)
+            if request.data["staffStatus"] == "False" or request.data["staffStatus"] == False:
+                status = False
+            else:
+                status = True
+            user_data = {
+                "is_active": status
+            }
+            serializer = UpdateUserStatusSerializer(user, data=user_data)
+            if serializer.is_valid():
+                serializer.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        except:
+            data["code"] = 404
+            data["message"] = "user not exist"
+    return Response(data)
+
+@api_view(['POST','GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsSuperadmin])
+def createadmin(request):
+    data = {}
+    if request.method == 'POST':
+        password = get_random_password()
+        user_data = {
+            "userName": request.data["adminName"],
+            "userPhone": request.data["adminPhone"],
+            "password": password
+        }
+        userserializer = UserRegisterSerializer(data=user_data)
+        if userserializer.is_valid():
+            user = userserializer.save()
+            user.is_admin = True
+            user.save()
+            data['code'] = 200
+            data['message'] = 'successful operation'
+            token = Token.objects.get(user=user).key
+            data['data'] = {
+                "token": token,
+                "adminName": user.userName,
+                "adminPhone": user.userPhone,
+                "adminPassword": password
+            }
+        else:
+            data["code"] = 400
+            data["message"] = "用户名已存在"
+    elif request.method=="GET":
+        admin_list = User.objects.filter(is_admin=True)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_adminlist(admin_list)
+
+    return Response(data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsSuperadmin])
+def adminstatus(request,adminID):
+    data = {}
+    if request.method=="POST":
+        try:
+            user = User.objects.get(id=int(adminID))
+            if user.is_superuser:
+                data["code"] = 400
+                data["message"] = "Superadmin cannot be inactivated"
+                return Response(data)
+            if request.data["adminStatus"] == "False" or request.data["adminStatus"] == False:
+                status = False
+            else:
+                status = True
+            user_data = {
+                "is_active": status
+            }
+            serializer = UpdateUserStatusSerializer(user, data=user_data)
+            if serializer.is_valid():
+                serializer.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        except:
+            data["code"] = 404
+            data["message"] = 'user not exists'
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def userlist(request):
+    data = {}
+    if request.method=="GET":
+        try:
+            numbers = request.query_params["numbers"]
+            student_list = Student.objects.all()[:int(numbers)]
+        except:
+            student_list = Student.objects.all()
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_student_list(student_list)
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def userdetails(request,userID):
+    data = {}
+    if request.method=="GET":
+        try:
+            student = Student.objects.get(user=int(userID))
+            data["code"] = 200
+            data["message"] = "successful operation"
+            data["data"] = format_student(student)
+        except:
+            data["code"] = 404
+            data["message"] = "user not found"
+    elif request.method=="POST":
+        try:
+            user = User.objects.get(id=int(userID))
+            if user.is_admin==True or user.is_superuser==True:
+                data["code"] = 400
+                data["message"] = "no permission"
+                return Response(data)
+            if request.data["userStatus"] == "False" or request.data["userStatus"]==False:
+                status = False
+            else:
+                status = True
+            user_data = {
+                "is_active": status
+            }
+            serializer = UpdateUserStatusSerializer(user, data=user_data)
+            if serializer.is_valid():
+                serializer.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        except:
+            data["code"] = 404
+            data["message"] = "user not exist"
     return Response(data)
