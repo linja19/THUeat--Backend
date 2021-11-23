@@ -124,6 +124,7 @@ class Staff(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
     first_login = models.BooleanField(default=True)
     stallID = models.ForeignKey(Stall, on_delete=models.CASCADE, default=None)
+    staffName = models.CharField(max_length=10,default=None)
 
     def __str__(self):
         return str(self.user)

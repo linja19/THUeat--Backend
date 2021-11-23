@@ -68,6 +68,23 @@ def get_random_password():
     password = ''.join(password_list)
     return password
 
+def get_random_username():
+    random_source = string.ascii_letters
+    # select 1 lowercase
+    password = random.choice(string.ascii_lowercase)
+    # select 1 uppercase
+    password += random.choice(string.ascii_uppercase)
+
+    # generate other characters
+    for i in range(4):
+        password += random.choice(random_source)
+
+    password_list = list(password)
+    # shuffle all characters
+    random.SystemRandom().shuffle(password_list)
+    password = ''.join(password_list)
+    return password
+
 def check_stallID_is_valid(stallID):
     if Stall.objects.filter(stallID=stallID).exists():
         return True
@@ -79,9 +96,10 @@ def check_stallID_is_valid(stallID):
 def createstaff(request):
     data = {}
     if request.method=='POST':
+        username = get_random_username()
         password = get_random_password()
         user_data = {
-            "userName":request.data["staffName"],
+            "userName":username,
             "userPhone":request.data["staffPhone"],
             "password":password
         }
@@ -91,16 +109,18 @@ def createstaff(request):
             staff_data = {
                 "user":user.pk,
                 "stallID":request.data["stallID"],
+                "staffName":request.data["staffName"]
             }
             staffserializer = StaffRegisterSerializer(data=staff_data)
             if staffserializer.is_valid():
-                staffserializer.save()
+                staff = staffserializer.save()
                 data['code'] = 200
                 data['message'] = 'successful operation'
                 token = Token.objects.get(user=user).key
                 data['data'] = {
                     "token":token,
-                    "staffName":user.userName,
+                    "userName" :user.userName,
+                    "staffName":staff.staffName,
                     "staffPhone":user.userPhone,
                     "staffPassword":password
                 }

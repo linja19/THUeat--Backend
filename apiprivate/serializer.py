@@ -23,12 +23,13 @@ class UserRegisterSerializer(serializers.ModelSerializer):
 class StaffRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = Staff
-        fields = ['user','stallID']               # field for this serializer (from Student model)
+        fields = ['user','stallID','staffName']               # field for this serializer (from Student model)
 
     def save(self):                                 # overwrite save function
         user = self.validated_data["user"]
         stallID = self.validated_data["stallID"]
-        staff = Staff(user=user,stallID=stallID) # create Student object
+        staffName = self.validated_data["staffName"]
+        staff = Staff(user=user,stallID=stallID,staffName=staffName) # create Student object
         staff.save()
         return staff
 
