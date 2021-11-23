@@ -43,12 +43,6 @@ def check_dish_is_valid(dish_list):                     # check a dish is existe
             return False
     return count
 
-@api_view(['GET'])
-def userlist(request):                              # check all user
-    users = User.objects.all()                      # get all user from user model
-    serializer = UserRegisterSerializer(users,many=True)    # serialize User model to UserSerializer
-    return Response(serializer.data)
-
 @api_view(['POST'])
 def user_register(request):
     if request.method=='POST':
@@ -139,6 +133,7 @@ def user_login(request):
                 data['message'] = '账号未激活'
                 return Response(data)
             if user.check_password(password):                   # check password
+                user.save()
                 data['code'] = 200
                 data['message'] = 'successful operation'
                 data['data'] = {
