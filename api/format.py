@@ -100,3 +100,40 @@ def format_dish_review(dishreview,user,login):
         data["replyDateTime"] = reply.replyDateTime
         data["replyComment"] = reply.replyContent
     return data
+
+def format_recommend_dish(dish,user,login):
+    data = {}
+    data["dishID"] = dish.dishID
+    data["dishName"] = dish.dishName
+    # data["dishIntro"] = dish.dishDescribe
+    data["dishPrice"] = dish.dishPrice
+    data["dishImage"] = dish.dishImage.url
+    data["dishLikes"] = dish.dishLikes
+    data["dishAvailableTime"] = dish.dishAvailableTime
+    if login:
+        if LikeDish.objects.filter(userID=user.pk, dishID=dish.dishID).exists():
+            data["myDishLike"] = True
+        else:
+            data["myDishLike"] = False
+    else:
+        data["myDishLike"] = None
+
+    dishreviews = []
+    dishreview_list = DishReview.objects.filter(dishID=dish.dishID)
+    for dishreview in dishreview_list:
+        dishreviews.append(
+            {
+                "likes":dishreview.reviewID.reviewLikes,
+                "comment":dishreview.reviewID.reviewComment
+            }
+        )
+    bestreview = sorted(dishreviews,key=lambda x:x['likes'])
+    if bestreview:
+        bestreview = bestreview[0]["comment"]
+    else:
+        bestreview = ""
+    data["dishBestComment"] = bestreview
+    data["stallID"] = dish.stallID.pk
+    data["stallName"] = dish.stallID.stallName
+    data["canteenName"] = dish.stallID.canteenID.canteenName
+    return data

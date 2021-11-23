@@ -378,3 +378,42 @@ def dishes(request,dishID):
             data["code"] = 404
             data["messages"] = "dish not found"
     return Response(data)
+
+@api_view(["GET"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+def recommenddish(request):
+    data = {}
+
+    if request.method=="GET":
+        try:
+            user = get_user_by_request_token(request)  # get user by token
+            login = True
+        except:
+            user = 0
+            login = False
+        try:
+            likes = request.query_params["likes"]
+            if likes=="True":
+                likes = True
+            else:
+                likes = False
+        except:
+            likes = False
+        try:
+            numbers = int(request.query_params["numbers"])
+            if likes:
+                dish_list = Dish.objects.order_by("-dishLikes")[:numbers]
+            else:
+                dish_list = Dish.objects.all()[:numbers]
+        except:
+            if likes:
+                dish_list = Dish.objects.order_by("-dishLikes")
+            else:
+                dish_list = Dish.objects.all()
+        messages = []
+        for dish in dish_list:
+            messages.append(format_recommend_dish(dish,user,login))
+        data["messages"] = messages
+
+    return Response(data)
