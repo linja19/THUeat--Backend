@@ -11,6 +11,8 @@ from .models import User, Token
 from .serializer import *
 from .format import *
 import re
+from django.core.mail import send_mail
+import threading
 
 # Create your views here.
 
@@ -65,13 +67,19 @@ def user_register(request):
             }
             studentserializer = StudentRegisterSerializer(data=student_data)    # create studentserializer with student data
             if studentserializer.is_valid():                                    # check studentserializer is_valid
-                studentserializer.save()                                        # save studentserializer (save student to database)
+                student = studentserializer.save()                                        # save studentserializer (save student to database)
+                content = 'This is your verification number:'+student.verificationNumber    # create email content
+                arg = (                                                                     # send_mail args
+                    "THU-EAT Verification",
+                    content,
+                    settings.EMAIL_HOST_USER,
+                    [student.userEmail],
+                    True
+                )
+                t1 = threading.Thread(target=send_mail,args=arg)                            # multithreading send verification number to email
+                t1.start()
                 data['code'] = 200                                              # successful message
                 data['message'] = 'successful operation'
-                token = Token.objects.get(user=user).key                        # find user in Token model and get its token
-                data['data'] = {
-                        "token":token,
-                    }
             else:
                 data['code'] = 400
                 data['message'] = "user with this userEmail already exists."    # error userEmail exists
@@ -86,6 +94,39 @@ def user_register(request):
         return Response(data)
 
 @api_view(['POST'])
+def user_verification(request):
+    data = {}
+    if request.method=='POST':
+        try:
+            user = User.objects.get(userName=request.data["userName"])
+            number = request.data["verificationNumber"]
+            if number == '0':
+                data["code"] = 400
+                data["message"] = "wrong verification number"
+                return Response(data)
+            student = Student.objects.get(user=user.pk)
+            verification = student.verificationNumber
+            if number==verification:                        # check key in number with verification number
+                user.is_active = True
+                user.save()
+                student.verificationNumber = 0
+                student.save()
+                data["code"] = 200
+                data["messages"] = "successful operation"
+                token = Token.objects.get(user=user).key  # find user in Token model and get its token
+                data['data'] = {
+                    "token": token,
+                }
+            else:
+                data["code"] = 400
+                data["message"] = "wrong verification number"
+                return Response(data)
+        except:
+            data["code"] = 404
+            data["message"] = 'user not found'
+    return Response(data)
+
+@api_view(['POST'])
 def user_login(request):
     data = {}
     if request.method=='POST':
@@ -93,6 +134,10 @@ def user_login(request):
         password = request.data['password']                     # get password
         try:
             user = User.objects.get_by_natural_key(userName)    # get user by using userName
+            if not user.is_active:
+                data['code'] = 400
+                data['message'] = '账号未激活'
+                return Response(data)
             if user.check_password(password):                   # check password
                 data['code'] = 200
                 data['message'] = 'successful operation'

@@ -45,7 +45,7 @@ class User(AbstractBaseUser):
     userPhone = models.CharField(max_length=30,null=True,blank=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_admin = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
@@ -69,7 +69,7 @@ class Student(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
     userImage = models.ImageField(upload_to=get_file_path_user,default="default/default_user.png",null=True,blank=True)
     userEmail = models.EmailField(max_length=100, unique=True)
-
+    verificationNumber = models.CharField(max_length=6,default=None)
     def __str__(self):
         return str(self.user)
 
