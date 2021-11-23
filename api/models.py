@@ -73,13 +73,6 @@ class Student(models.Model):
     def __str__(self):
         return str(self.user)
 
-class Staff(models.Model):
-    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
-    first_login = models.BooleanField(default=True)
-
-    def __str__(self):
-        return str(self.user)
-
 @receiver(post_save,sender=settings.AUTH_USER_MODEL)
 def create_auth_token(sender,instance=None,created=False,**kwargs):
     if created:
@@ -126,6 +119,14 @@ class StallImage(models.Model):
 
     def __str__(self):
         return str(self.stallID)
+
+class Staff(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+    first_login = models.BooleanField(default=True)
+    stallID = models.ForeignKey(Stall, on_delete=models.CASCADE, default=None)
+
+    def __str__(self):
+        return str(self.user)
 
 def get_file_path_dish(instance, filename):
     ext = filename.split('.')[-1]
@@ -211,13 +212,13 @@ class LikeDish(models.Model):
         name = str(self.userID)+'_'+str(self.dishID)
         return name
 
-class UserStall(models.Model):
-    userID = models.ForeignKey(User, on_delete=models.CASCADE)
-    stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
-
-    def __str__(self):
-        name = str(self.userID)+'_'+str(self.stallID)
-        return name
+# class UserStall(models.Model):
+#     userID = models.ForeignKey(User, on_delete=models.CASCADE)
+#     stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
+#
+#     def __str__(self):
+#         name = str(self.userID)+'_'+str(self.stallID)
+#         return name
 
 class Ratings(models.Model):
     stallRate = models.FloatField()
