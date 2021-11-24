@@ -139,3 +139,13 @@ def format_recommend_dish(dish,user,login):
     data["stallName"] = dish.stallID.stallName
     data["canteenName"] = dish.stallID.canteenID.canteenName
     return data
+
+def format_notice_list(notice_list):
+    datalist = []
+    for notice in notice_list:
+        data = {}
+        data["noticeTitle"] = notice.noticeTitle
+        data["noticeWords"] = notice.noticeWords
+        data["noticeImage"] = notice.noticeImage.url
+        datalist.append(data)
+    return datalist

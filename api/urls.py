@@ -13,4 +13,5 @@ urlpatterns = [
     path('reviews/like/<int:reviewID>', views.reviewslike, name="review-like"),
     path('dishes/<int:dishID>', views.dishes, name="dishes"),
     path('dishes', views.recommenddish, name="recommend-dishes"),
+    path('notice', views.getnotice, name='get-notice'),
 ]

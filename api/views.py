@@ -464,3 +464,13 @@ def recommenddish(request):
         data["messages"] = messages
 
     return Response(data)
+
+@api_view(["GET"])
+def getnotice(request):
+    data = {}
+    if request.method=="GET":
+        notice_list = Notice.objects.all()
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_notice_list(notice_list)
+    return Response(data)

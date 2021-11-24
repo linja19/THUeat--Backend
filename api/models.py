@@ -229,7 +229,10 @@ class Notice(models.Model):
 
     noticeImage = models.ImageField(upload_to=get_file_path_notice, null=True,
                                    blank=True)
-    noticeCreateTime = models.DateTimeField(auto_created=True)
+    # noticeCreateTime = models.DateTimeField(auto_created=True)
     # noticeType = models.CharField(max_length=20,choices=CHOICES)
     noticeTitle = models.CharField(max_length=60,default=None)
     noticeWords = models.CharField(max_length=150,default=None)
+
+    def __str__(self):
+        return self.noticeTitle
