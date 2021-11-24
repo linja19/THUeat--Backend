@@ -45,7 +45,7 @@ class User(AbstractBaseUser):
     userPhone = models.CharField(max_length=30,null=True,blank=True)
     last_login = models.DateTimeField(verbose_name='last login', auto_now=True)
     is_admin = models.BooleanField(default=False)
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_superuser = models.BooleanField(default=False)
 
@@ -69,14 +69,7 @@ class Student(models.Model):
     user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
     userImage = models.ImageField(upload_to=get_file_path_user,default="default/default_user.png",null=True,blank=True)
     userEmail = models.EmailField(max_length=100, unique=True)
-
-    def __str__(self):
-        return str(self.user)
-
-class Staff(models.Model):
-    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
-    first_login = models.BooleanField(default=True)
-
+    verificationNumber = models.CharField(max_length=6,default=None)
     def __str__(self):
         return str(self.user)
 
@@ -111,11 +104,12 @@ def get_file_path_stall(instance, filename):
 class Stall(models.Model):
     stallID = models.BigAutoField(primary_key=True)
     stallName = models.CharField(max_length=30,unique=True)
-    stallAddress = models.CharField(max_length=60)
+    stallFloor = models.IntegerField(null=True)
     stallDescribe = models.CharField(max_length=300,blank=True)
     stallRate = models.FloatField(blank=True,null=True)
-    stallRateNum = models.IntegerField(blank=True,null=True)
+    stallRateNum = models.IntegerField(blank=True,null=True,default=0)
     canteenID = models.ForeignKey(Canteen,on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.stallName
@@ -126,6 +120,25 @@ class StallImage(models.Model):
 
     def __str__(self):
         return str(self.stallID)
+
+class Staff(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+    first_login = models.BooleanField(default=True)
+    stallID = models.ForeignKey(Stall, on_delete=models.CASCADE, default=None)
+    staffName = models.CharField(max_length=10,default=None)
+    staffID = models.IntegerField(default=0)
+
+    def __str__(self):
+        return str(self.user)
+
+class Admin(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+    first_login = models.BooleanField(default=True)
+    adminName = models.CharField(max_length=10,default=None)
+    adminID = models.IntegerField(default=0)
+
+    def __str__(self):
+        return str(self.adminName)
 
 def get_file_path_dish(instance, filename):
     ext = filename.split('.')[-1]
@@ -166,6 +179,7 @@ class Review(models.Model):
     reviewComment = models.CharField(max_length=500,blank=True)
     reviewTags = models.CharField(max_length=100,blank=True)
     reply = models.BooleanField(default=False)
+    rate = models.FloatField(default=None)
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
     userID = models.ForeignKey(User,on_delete=models.CASCADE)
 
@@ -211,23 +225,6 @@ class LikeDish(models.Model):
         name = str(self.userID)+'_'+str(self.dishID)
         return name
 
-class UserStall(models.Model):
-    userID = models.ForeignKey(User, on_delete=models.CASCADE)
-    stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
-
-    def __str__(self):
-        name = str(self.userID)+'_'+str(self.stallID)
-        return name
-
-class Ratings(models.Model):
-    stallRate = models.FloatField()
-    userID = models.ForeignKey(User, on_delete=models.CASCADE)
-    stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
-
-    def __str__(self):
-        name = str(self.userID)+'_'+str(self.stallID)
-        return name
-
 def get_file_path_notice(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (uuid.uuid4(), ext)
@@ -243,6 +240,10 @@ class Notice(models.Model):
 
     noticeImage = models.ImageField(upload_to=get_file_path_notice, null=True,
                                    blank=True)
-    noticeCreateTime = models.DateTimeField(auto_created=True)
-    noticeType = models.CharField(max_length=20,choices=CHOICES)
-    noticeName = models.CharField(max_length=50)
+    # noticeCreateTime = models.DateTimeField(auto_created=True)
+    # noticeType = models.CharField(max_length=20,choices=CHOICES)
+    noticeTitle = models.CharField(max_length=60,default=None)
+    noticeWords = models.CharField(max_length=150,default=None)
+
+    def __str__(self):
+        return self.noticeTitle

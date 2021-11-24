@@ -11,6 +11,8 @@ from .models import User, Token
 from .serializer import *
 from .format import *
 import re
+from django.core.mail import send_mail
+import threading
 
 # Create your views here.
 
@@ -41,12 +43,6 @@ def check_dish_is_valid(dish_list):                     # check a dish is existe
             return False
     return count
 
-@api_view(['GET'])
-def userlist(request):                              # check all user
-    users = User.objects.all()                      # get all user from user model
-    serializer = UserRegisterSerializer(users,many=True)    # serialize User model to UserSerializer
-    return Response(serializer.data)
-
 @api_view(['POST'])
 def user_register(request):
     if request.method=='POST':
@@ -65,13 +61,19 @@ def user_register(request):
             }
             studentserializer = StudentRegisterSerializer(data=student_data)    # create studentserializer with student data
             if studentserializer.is_valid():                                    # check studentserializer is_valid
-                studentserializer.save()                                        # save studentserializer (save student to database)
+                student = studentserializer.save()                                        # save studentserializer (save student to database)
+                content = 'This is your verification number:'+student.verificationNumber    # create email content
+                arg = (                                                                     # send_mail args
+                    "THU-EAT Verification",
+                    content,
+                    settings.EMAIL_HOST_USER,
+                    [student.userEmail],
+                    True
+                )
+                t1 = threading.Thread(target=send_mail,args=arg)                            # multithreading send verification number to email
+                t1.start()
                 data['code'] = 200                                              # successful message
                 data['message'] = 'successful operation'
-                token = Token.objects.get(user=user).key                        # find user in Token model and get its token
-                data['data'] = {
-                        "token":token,
-                    }
             else:
                 data['code'] = 400
                 data['message'] = "user with this userEmail already exists."    # error userEmail exists
@@ -86,6 +88,39 @@ def user_register(request):
         return Response(data)
 
 @api_view(['POST'])
+def user_verification(request):
+    data = {}
+    if request.method=='POST':
+        try:
+            user = User.objects.get(userName=request.data["userName"])
+            number = request.data["verificationNumber"]
+            if number == '0':
+                data["code"] = 400
+                data["message"] = "wrong verification number"
+                return Response(data)
+            student = Student.objects.get(user=user.pk)
+            verification = student.verificationNumber
+            if number==verification:                        # check key in number with verification number
+                user.is_active = True
+                user.save()
+                student.verificationNumber = 0
+                student.save()
+                data["code"] = 200
+                data["messages"] = "successful operation"
+                token = Token.objects.get(user=user).key  # find user in Token model and get its token
+                data['data'] = {
+                    "token": token,
+                }
+            else:
+                data["code"] = 400
+                data["message"] = "wrong verification number"
+                return Response(data)
+        except:
+            data["code"] = 404
+            data["message"] = 'user not found'
+    return Response(data)
+
+@api_view(['POST'])
 def user_login(request):
     data = {}
     if request.method=='POST':
@@ -93,7 +128,12 @@ def user_login(request):
         password = request.data['password']                     # get password
         try:
             user = User.objects.get_by_natural_key(userName)    # get user by using userName
+            if not user.is_active:
+                data['code'] = 400
+                data['message'] = '账号未激活'
+                return Response(data)
             if user.check_password(password):                   # check password
+                user.save()
                 data['code'] = 200
                 data['message'] = 'successful operation'
                 data['data'] = {
@@ -128,11 +168,6 @@ def user_details(request):
         for review in review_list:
             myReviews.append(format_myreview(review))               # add review to myReviews
         data["data"]["myReviews"] = myReviews
-        ratings_list = Ratings.objects.filter(userID=user.pk)       # find user ratings
-        myRatings = []
-        for ratings in ratings_list:
-            myRatings.append(format_myratings(ratings))             # add ratings to myRatings
-        data["data"]["myRatings"] = myRatings
 
         return Response(data)
     elif request.method=='POST':                                    # update user details
@@ -201,12 +236,16 @@ def reviews(request):
         review_data = {
             "reviewComment":request.data["reviewComment"],
             "reviewTags":request.data["reviewTags"],
+            "rate":request.data["rate"],
             "userID":user.pk,
             "stallID":stallID
         }
         reviewserializer = CreateReviewSerializer(data=review_data)     # create reviewserializer
         if (reviewserializer.is_valid())&(check_dish_is_valid(request.data["dishID"])):
             review = reviewserializer.save()                            # save serializer to create primary key
+            stall = Stall.objects.get(stallID=stallID)
+            stall.stallRateNum += 1
+            stall.save()
             for each in request.data["reviewImages"]:                   # for each image,create serializer and save
                 reviewimages_data = {
                     "reviewID":review.pk,
@@ -248,23 +287,27 @@ def reviews(request):
             data["code"] = 404
             data["messages"] = "review not found"
 
-    elif request.method=='DELETE':
-        try:                                                # find reviewID in url
-            reviewID = request.query_params["reviewID"]
-        except:
-            data["code"] = 404
-            data["messages"] = "reviewID not found"
-            return Response(data)
+    return Response(data)
+
+@api_view(["DELETE"])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAuthenticated])
+def deletereviews(request,reviewID):
+    data = {}
+    user = get_user_by_request_token(request)  # get user by token
+    if request.method=='DELETE':
         try:
-            Review.objects.get(reviewID=reviewID).delete()
-            data["code"] = 200
-            data["messages"] = "successful operation"
+            review = Review.objects.get(reviewID=reviewID)
+            if review.userID.pk == user.pk:
+                review.delete()
+                data["code"] = 200
+                data["messages"] = "successful operation"
+            else:
+                data["code"] = 400
+                data["messages"] = "no permission"
         except Review.DoesNotExist:
             data["code"] = 404
             data["messages"] = "review not exist"
-        else:
-            data["code"] = 400
-            data["messages"] = "unsuccessful"
     return Response(data)
 
 @api_view(["POST","DELETE"])
@@ -322,6 +365,10 @@ def dishes(request,dishID):
             data["code"] = 400
             data["messages"] = "Token not provided"
             return Response(data)
+        if not user.is_active:
+            data["code"] = 400
+            data["messages"] = "User inactivated"
+            return Response(data)
         request_data = {
             "userID": user.pk,
             "dishID": int(dishID)
@@ -377,4 +424,53 @@ def dishes(request,dishID):
         except:
             data["code"] = 404
             data["messages"] = "dish not found"
+    return Response(data)
+
+@api_view(["GET"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+def recommenddish(request):
+    data = {}
+
+    if request.method=="GET":
+        try:
+            user = get_user_by_request_token(request)  # get user by token
+            login = True
+        except:
+            user = 0
+            login = False
+        try:
+            likes = request.query_params["likes"]
+            if likes=="True":
+                likes = True
+            else:
+                likes = False
+        except:
+            likes = False
+        try:
+            numbers = int(request.query_params["numbers"])
+            if likes:
+                dish_list = Dish.objects.order_by("-dishLikes")[:numbers]
+            else:
+                dish_list = Dish.objects.all()[:numbers]
+        except:
+            if likes:
+                dish_list = Dish.objects.order_by("-dishLikes")
+            else:
+                dish_list = Dish.objects.all()
+        messages = []
+        for dish in dish_list:
+            messages.append(format_recommend_dish(dish,user,login))
+        data["messages"] = messages
+
+    return Response(data)
+
+@api_view(["GET"])
+def getnotice(request):
+    data = {}
+    if request.method=="GET":
+        notice_list = Notice.objects.all()
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_notice_list(notice_list)
     return Response(data)

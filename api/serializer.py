@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from .models import *
-
+import random
 class UserRegisterSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -25,9 +25,16 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
 
     def save(self):                                 # overwrite save function
         user = self.validated_data["user"]
-        student = Student(user=user,userEmail=self.validated_data['userEmail']) # create Student object
+        verification_number = str(random.randint(0,999999))
+        student = Student(user=user,userEmail=self.validated_data['userEmail'],verificationNumber=verification_number) # create Student object
         student.save()
         return student
+
+class StudentVerificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['user','verificationNumber']
+
 
 class UpdateUserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -67,7 +74,7 @@ class UpdateUserPasswordSerializer(serializers.ModelSerializer):
 class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['reviewComment','reviewTags','stallID','userID']
+        fields = ['reviewComment','reviewTags','stallID','userID','rate']
 
 class CreateReviewImagesSerializer(serializers.ModelSerializer):
     class Meta:
