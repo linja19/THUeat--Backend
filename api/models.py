@@ -109,6 +109,7 @@ class Stall(models.Model):
     stallRate = models.FloatField(blank=True,null=True)
     stallRateNum = models.IntegerField(blank=True,null=True,default=0)
     canteenID = models.ForeignKey(Canteen,on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.stallName
@@ -125,9 +126,19 @@ class Staff(models.Model):
     first_login = models.BooleanField(default=True)
     stallID = models.ForeignKey(Stall, on_delete=models.CASCADE, default=None)
     staffName = models.CharField(max_length=10,default=None)
+    staffID = models.IntegerField(default=0)
 
     def __str__(self):
         return str(self.user)
+
+class Admin(models.Model):
+    user = models.OneToOneField(User,on_delete=models.CASCADE,primary_key=True)
+    first_login = models.BooleanField(default=True)
+    adminName = models.CharField(max_length=10,default=None)
+    adminID = models.IntegerField(default=0)
+
+    def __str__(self):
+        return str(self.adminName)
 
 def get_file_path_dish(instance, filename):
     ext = filename.split('.')[-1]

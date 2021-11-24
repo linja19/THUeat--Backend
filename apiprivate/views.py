@@ -7,6 +7,8 @@ from rest_framework.permissions import IsAuthenticated
 from .serializer import *
 from .permissions import *
 from .format import *
+from django.core.mail import send_mail
+import threading
 
 @api_view(['POST'])
 def login(request):
@@ -21,7 +23,7 @@ def login(request):
                 first_login = False
             elif user.is_admin:
                 type = "admin"
-                first_login = False
+                first_login = Admin.objects.get(user=user.pk).first_login
             elif user.is_staff:
                 type = "staff"
                 first_login = Staff.objects.get(user=user.pk).first_login
@@ -30,6 +32,7 @@ def login(request):
                 data["message"] = "public user"
                 return Response(data)
             if user.check_password(password):
+                user.save()
                 data["code"] = 200
                 data["message"] = "successful operation"
                 data["data"] = {
@@ -70,19 +73,16 @@ def get_random_password():
 
 def get_random_username():
     random_source = string.ascii_letters
-    # select 1 lowercase
-    password = random.choice(string.ascii_lowercase)
     # select 1 uppercase
-    password += random.choice(string.ascii_uppercase)
-
-    # generate other characters
+    username = random.choice(string.ascii_uppercase)
+    # generate other lowercase characters
     for i in range(4):
-        password += random.choice(random_source)
+        username += random.choice(string.ascii_lowercase)
+    # select 1 digit
+    username += random.choice(string.digits)
 
-    password_list = list(password)
-    # shuffle all characters
-    random.SystemRandom().shuffle(password_list)
-    password = ''.join(password_list)
+    username_list = list(username)
+    password = ''.join(username_list)
     return password
 
 def check_stallID_is_valid(stallID):
@@ -98,6 +98,8 @@ def createstaff(request):
     if request.method=='POST':
         username = get_random_username()
         password = get_random_password()
+        while User.objects.filter(userName=username).exists():
+            username = get_random_username()
         user_data = {
             "userName":username,
             "userPhone":request.data["staffPhone"],
@@ -114,16 +116,22 @@ def createstaff(request):
             staffserializer = StaffRegisterSerializer(data=staff_data)
             if staffserializer.is_valid():
                 staff = staffserializer.save()
+                staff.staffID = Staff.objects.all().count() + 1
+                staff.save()
+                content = '''Hi '''+ staff.staffName + ''', this is your account information, visit the website and login. After login, please change your username and password.
+                username:''' + username + '''
+                password:''' + password  # create email content
+                arg = (  # send_mail args
+                    "THU-EAT Staff Account",
+                    content,
+                    settings.EMAIL_HOST_USER,
+                    [user.userPhone],
+                    True
+                )
+                t1 = threading.Thread(target=send_mail, args=arg)  # multithreading send verification number to email
+                t1.start()
                 data['code'] = 200
                 data['message'] = 'successful operation'
-                token = Token.objects.get(user=user).key
-                data['data'] = {
-                    "token":token,
-                    "userName" :user.userName,
-                    "staffName":staff.staffName,
-                    "staffPhone":user.userPhone,
-                    "staffPassword":password
-                }
         else:
             data["code"] = 400
             message = []
@@ -193,8 +201,11 @@ def createadmin(request):
     data = {}
     if request.method == 'POST':
         password = get_random_password()
+        username = get_random_username()
+        while User.objects.filter(userName=username).exists():
+            username = get_random_username()
         user_data = {
-            "userName": request.data["adminName"],
+            "userName": username,
             "userPhone": request.data["adminPhone"],
             "password": password
         }
@@ -203,20 +214,31 @@ def createadmin(request):
             user = userserializer.save()
             user.is_admin = True
             user.save()
-            data['code'] = 200
-            data['message'] = 'successful operation'
-            token = Token.objects.get(user=user).key
-            data['data'] = {
-                "token": token,
-                "adminName": user.userName,
-                "adminPhone": user.userPhone,
-                "adminPassword": password
+            admin_data = {
+                "user":user.pk,
+                "adminName": request.data["adminValidName"]
             }
-        else:
-            data["code"] = 400
-            data["message"] = "用户名已存在"
+            adminserializer = AdminRegisterSerializer(data=admin_data)
+            if adminserializer.is_valid():
+                admin = adminserializer.save()
+                admin.adminID = Admin.objects.all().count()
+                admin.save()
+                content = '''Hi ''' + admin.adminName + ''', this is your account information, visit the website and login. After login, please change your username and password.
+                            username:''' + username + '''
+                            password:''' + password  # create email content
+                arg = (  # send_mail args
+                    "THU-EAT Admin Account",
+                    content,
+                    settings.EMAIL_HOST_USER,
+                    [user.userPhone],
+                    True
+                )
+                t1 = threading.Thread(target=send_mail, args=arg)  # multithreading send verification number to email
+                t1.start()
+                data['code'] = 200
+                data['message'] = 'successful operation'
     elif request.method=="GET":
-        admin_list = User.objects.filter(is_admin=True)
+        admin_list = Admin.objects.all()
         data["code"] = 200
         data["message"] = "successful operation"
         data["data"] = format_adminlist(admin_list)
@@ -304,4 +326,106 @@ def userdetails(request,userID):
         except:
             data["code"] = 404
             data["message"] = "user not exist"
+    return Response(data)
+
+import re
+def get_user_by_request_token(request):
+    authorization = request.META.get('HTTP_AUTHORIZATION', '')  # get authorization from request header
+    token = re.match('Token (.*)', authorization)  # find token in authorization
+    if token:
+        token = token.group(1)
+
+    user = Token.objects.get(key=token).user  # get user by using token
+    return user
+
+@api_view(['POST','GET'])
+def selfdetails(request):
+    data = {}
+    if request.method=='POST':
+        try:
+            user = Token.objects.get(key=request.data["token"]).user
+        except:
+            data["code"] = 400
+            data["message"] = "token not provided"
+            return Response(data)
+        user_data = {
+            'userName':request.data["name"],
+            'userPhone':request.data["phone"],
+            'password':request.data["password"]
+        }
+        if user.is_admin:
+            serializers = UpdateAdminSerializer(user,data=user_data)
+            if serializers.is_valid() and user.check_password(request.data["oldPassword"]):
+                serializers.save()
+                admin = Admin.objects.get(user=user.pk)
+                data["code"] = 200
+                if admin.first_login:
+                    data["message"] = "successful operation, account activated successful"
+                    admin.first_login = False
+                    user.is_active = True
+                    admin.save()
+                    user.save()
+                else:
+                    data["message"] = "successful operation"
+            else:
+                data["code"] = 200
+                if user.check_password(request.data["oldPassword"]):
+                    data["message"] = "wrong password"
+                else:
+                    data["message"] = "username exists"
+        elif user.is_staff:
+            serializers = UpdateAdminSerializer(user, data=user_data)
+            if serializers.is_valid() and user.check_password(request.data["oldPassword"]):
+                serializers.save()
+                staff = Staff.objects.get(user=user.pk)
+                data["code"] = 200
+                if staff.first_login:
+                    data["message"] = "successful operation, account activated successful"
+                    staff.first_login = False
+                    user.is_active = True
+                    staff.save()
+                    user.save()
+                else:
+                    data["message"] = "successful operation"
+            else:
+                data["code"] = 200
+                data["message"] = "wrong password"
+    elif request.method=="GET":
+        try:
+            user = get_user_by_request_token(request)
+            if user.is_superuser:
+                validName = ["SuperAdmin"]
+                type = "superadmin"
+            elif user.is_admin:
+                validName = Admin.objects.get(user=user.pk).adminName,
+                type = "admin"
+            elif user.is_staff:
+                validName = Staff.objects.get(user=user.pk).staffName,
+                type = "staff"
+            else:
+                data["code"] = 400
+                data["message"] = "public user"
+                return Response(data)
+            data["code"] = 200
+            data["message"] = "successful operation"
+            data["data"] = {
+                "validName":validName[0],
+                "name":user.userName,
+                "phone":user.userPhone,
+                "type":type
+            }
+        except:
+            data["code"] = 400
+            data["message"] = "token not provided"
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def adminstatistic(request):
+    data = {}
+    if request.method=='GET':
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_admin_statistic()
     return Response(data)

@@ -33,6 +33,18 @@ class StaffRegisterSerializer(serializers.ModelSerializer):
         staff.save()
         return staff
 
+class AdminRegisterSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Admin
+        fields = ['user','adminName']               # field for this serializer (from Student model)
+
+    def save(self):                                 # overwrite save function
+        user = self.validated_data["user"]
+        adminName = self.validated_data["adminName"]
+        admin = Admin(user=user,adminName=adminName) # create Student object
+        admin.save()
+        return admin
+
 class UpdateUserStatusSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
@@ -40,5 +52,21 @@ class UpdateUserStatusSerializer(serializers.ModelSerializer):
 
     def update(self, instance, validated_data):  # overwrite update function
         instance.is_active = validated_data['is_active']
+        instance.save()
+        return instance
+
+class UpdateAdminSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['userName','userPhone','password']
+        extra_kwargs = {
+            'password': {'write_only': True},
+        }
+
+    def update(self,instance,validated_data):
+        instance.userName = validated_data['userName']
+        instance.userPhone = validated_data['userPhone']
+        password = validated_data['password']
+        instance.set_password(password)
         instance.save()
         return instance
