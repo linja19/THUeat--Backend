@@ -74,7 +74,7 @@ class UpdateUserPasswordSerializer(serializers.ModelSerializer):
 class CreateReviewSerializer(serializers.ModelSerializer):
     class Meta:
         model = Review
-        fields = ['reviewComment','reviewTags','stallID','userID']
+        fields = ['reviewComment','reviewTags','stallID','userID','rate']
 
 class CreateReviewImagesSerializer(serializers.ModelSerializer):
     class Meta:

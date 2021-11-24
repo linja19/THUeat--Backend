@@ -104,10 +104,10 @@ def get_file_path_stall(instance, filename):
 class Stall(models.Model):
     stallID = models.BigAutoField(primary_key=True)
     stallName = models.CharField(max_length=30,unique=True)
-    stallAddress = models.CharField(max_length=60)
+    stallFloor = models.IntegerField(null=True)
     stallDescribe = models.CharField(max_length=300,blank=True)
     stallRate = models.FloatField(blank=True,null=True)
-    stallRateNum = models.IntegerField(blank=True,null=True)
+    stallRateNum = models.IntegerField(blank=True,null=True,default=0)
     canteenID = models.ForeignKey(Canteen,on_delete=models.CASCADE)
 
     def __str__(self):
@@ -168,6 +168,7 @@ class Review(models.Model):
     reviewComment = models.CharField(max_length=500,blank=True)
     reviewTags = models.CharField(max_length=100,blank=True)
     reply = models.BooleanField(default=False)
+    rate = models.FloatField(default=None)
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
     userID = models.ForeignKey(User,on_delete=models.CASCADE)
 
@@ -213,23 +214,6 @@ class LikeDish(models.Model):
         name = str(self.userID)+'_'+str(self.dishID)
         return name
 
-# class UserStall(models.Model):
-#     userID = models.ForeignKey(User, on_delete=models.CASCADE)
-#     stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
-#
-#     def __str__(self):
-#         name = str(self.userID)+'_'+str(self.stallID)
-#         return name
-
-class Ratings(models.Model):
-    stallRate = models.FloatField()
-    userID = models.ForeignKey(User, on_delete=models.CASCADE)
-    stallID = models.ForeignKey(Stall, on_delete=models.CASCADE)
-
-    def __str__(self):
-        name = str(self.userID)+'_'+str(self.stallID)
-        return name
-
 def get_file_path_notice(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (uuid.uuid4(), ext)
@@ -246,5 +230,6 @@ class Notice(models.Model):
     noticeImage = models.ImageField(upload_to=get_file_path_notice, null=True,
                                    blank=True)
     noticeCreateTime = models.DateTimeField(auto_created=True)
-    noticeType = models.CharField(max_length=20,choices=CHOICES)
-    noticeName = models.CharField(max_length=50)
+    # noticeType = models.CharField(max_length=20,choices=CHOICES)
+    noticeTitle = models.CharField(max_length=60,default=None)
+    noticeWords = models.CharField(max_length=150,default=None)

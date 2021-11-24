@@ -30,6 +30,7 @@ def format_myreview(review):
     data["stallName"] = Stall.objects.get(stallID=review.stallID.pk).stallName
     data["reviewID"] = review.reviewID
     data["reviewDateTime"] = review.reviewDateTime
+    data["rate"] = review.rate
     data["reviewComment"] = review.reviewComment
     data["reviewImages"] = [image.reviewImages.url for image in image_list]
     data["reviewTags"] = review.reviewTags
@@ -81,6 +82,7 @@ def format_dish_review(dishreview,user,login):
     data["userImage"] = Student.objects.get(user=dishreview.reviewID.userID.pk).userImage.url
     data["reviewID"] = dishreview.reviewID.pk
     data["reviewDateTime"] = dishreview.reviewID.reviewDateTime
+    data["rate"] = dishreview.reviewID.rate
     data["reviewImages"] = [reviewimage.reviewImages.url for reviewimage in ReviewImage.objects.filter(reviewID=dishreview.reviewID.pk)]
     data["reviewComment"] = dishreview.reviewID.reviewComment
     data["reviewTags"] = dishreview.reviewID.reviewTags
