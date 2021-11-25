@@ -429,3 +429,24 @@ def adminstatistic(request):
         data["message"] = "successful operation"
         data["data"] = format_admin_statistic()
     return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def notice(request):
+    data = {}
+    if request.method=='GET':
+        notice_list = Notice.objects.all()
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_notice_list(notice_list)
+    elif request.method=="POST":
+        noticeserializer = CreateNoticeSerializer(data=request.data)
+        if noticeserializer.is_valid():
+            noticeserializer.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "something wrong"
+    return Response(data)

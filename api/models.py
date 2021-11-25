@@ -239,7 +239,7 @@ class Notice(models.Model):
     )
 
     noticeImage = models.ImageField(upload_to=get_file_path_notice, null=True,
-                                   blank=True)
+                                   blank=True,default="default/default_notice.jpg")
     # noticeCreateTime = models.DateTimeField(auto_created=True)
     # noticeType = models.CharField(max_length=20,choices=CHOICES)
     noticeTitle = models.CharField(max_length=60,default=None)

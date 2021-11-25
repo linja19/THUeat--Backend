@@ -61,3 +61,13 @@ def format_admin_statistic():
     data["userNumber"] = all_user_number
     data["userLoginRate"] = login_rate
     return data
+
+def format_notice_list(notice_list):
+    datalist = []
+    for notice in notice_list:
+        data = {}
+        data["noticeTitle"] = notice.noticeTitle
+        data["noticeWords"] = notice.noticeWords
+        data["noticeImage"] = notice.noticeImage.url
+        datalist.append(data)
+    return datalist

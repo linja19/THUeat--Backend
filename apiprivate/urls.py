@@ -11,4 +11,5 @@ urlpatterns = [
     path('users', views.userlist, name="user-list"),
     path('users/<int:userID>', views.userdetails, name="user-details"),
     path('adminStatistics', views.adminstatistic, name="admin-statistics"),
+    path('notice', views.notice, name="notice"),
 ]

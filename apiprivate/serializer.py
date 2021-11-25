@@ -70,3 +70,8 @@ class UpdateAdminSerializer(serializers.ModelSerializer):
         instance.set_password(password)
         instance.save()
         return instance
+
+class CreateNoticeSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Notice
+        fields = ['noticeImage','noticeTitle','noticeWords']
