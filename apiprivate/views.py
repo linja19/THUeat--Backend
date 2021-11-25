@@ -450,3 +450,81 @@ def notice(request):
             data["code"] = 400
             data["message"] = "something wrong"
     return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def canteen(request):
+    data = {}
+    if request.method=='GET':
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_canteen()
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def canteen_name(request):
+    data = {}
+    if request.method == 'GET':
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_canteen_name()
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def stalls(request):
+    data = {}
+    if request.method == 'GET':
+        data["code"] = 200
+        data["message"] = "successful operation"
+        try:
+            canteenID = request.query_params["canteenID"]
+            stall_list = Stall.objects.filter(canteenID=canteenID)
+        except:
+            stall_list = Stall.objects.all()
+        try:
+            if request.query_params["status"]=="True":
+                status = True
+            elif request.query_params["status"]=="False":
+                status = False
+            stall_list = stall_list.filter(is_active=status)
+        except:
+            pass
+        data["data"] = format_stall_list(stall_list)
+    elif request.method == 'POST':
+        stallserializer = CreateStallSerializer(data=request.data)
+        if stallserializer.is_valid():
+            stallserializer.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "canteenID not exists"
+    return Response(data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def stalls_status(request,stallID):
+    data = {}
+    if request.method=="POST":
+        try:
+            stall = Stall.objects.get(stallID=stallID)
+            if request.data["stallStatus"] == True:
+                stall.is_active = True
+                stall.save()
+                data["code"] = 200
+                data["message"] = "successful operation"
+            elif request.data["stallStatus"] == False:
+                stall.is_active = False
+                stall.save()
+                data["code"] = 200
+                data["message"] = "successful operation"
+        except:
+            data["code"] = 400
+            data["message"] = "stallID not exists"
+    return Response(data)

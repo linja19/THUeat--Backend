@@ -75,3 +75,8 @@ class CreateNoticeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Notice
         fields = ['noticeImage','noticeTitle','noticeWords']
+
+class CreateStallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stall
+        fields = ["stallName","stallFloor","canteenID"]
