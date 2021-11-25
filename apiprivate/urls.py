@@ -16,4 +16,9 @@ urlpatterns = [
     path('canteens/names', views.canteen_name, name="canteen-name"),
     path('stalls', views.stalls, name="stall"),
     path('stalls/<stallID>', views.stalls_status, name="stall-status"),
+    path('mystall', views.mystall, name="mystall"),
+    path('mystall/reviews', views.mystall_review, name="mystall-review"),
+    path('mystall/reviews/<reviewID>', views.create_reply, name="create-reply"),
+    path('mystall/dishes', views.dish, name="dish"),
+    path('mystall/dishes/<dishID>', views.dish_detail, name="dish-detail"),
 ]

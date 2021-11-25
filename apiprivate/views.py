@@ -528,3 +528,78 @@ def stalls_status(request,stallID):
             data["code"] = 400
             data["message"] = "stallID not exists"
     return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def mystall(request):
+    data = {}
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def mystall_review(request):
+    data = {}
+    if request.method=="GET":
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+            review_list = Review.objects.filter(stallID=staff.stallID)
+            data["code"] = 200
+            data["message"] = "successful operation"
+            data["data"] = format_review_list(review_list)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+    return Response(data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def create_reply(request,reviewID):
+    data = {}
+    if request.method=='POST':
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+            return Response(data)
+        try:
+            review = Review.objects.get(reviewID=reviewID)
+        except:
+            data["code"] = 404
+            data["message"] = "review not exists"
+            return Response(data)
+        request_data = {
+            "parent_reviewID":reviewID,
+            "replyContent":request.data["replyComment"],
+            "stallID":staff.stallID.pk
+        }
+        replyserializer = ReplySerializer(data=request_data)
+        if replyserializer.is_valid() and not review.reply:
+            replyserializer.save()
+            review.reply = True
+            review.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "this review has been replied"
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def dish(request):
+    data = {}
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def dish_detail(request,dishID):
+    data = {}
+    return Response(data)

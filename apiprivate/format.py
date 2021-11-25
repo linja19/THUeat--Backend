@@ -114,3 +114,31 @@ def format_stall_list(stall_list):
         data["stallStatus"] = stall.is_active
         datalist.append(data)
     return datalist
+
+def format_review_list(review_list):
+    data_list = []
+    for review in review_list:
+        data = {}
+        data["userName"] = review.userID.userName
+        data["userImage"] = Student.objects.get(user=review.userID).userImage.url
+        data["reviewID"] = review.reviewID
+        data["reviewDateTime"] = review.reviewDateTime
+        data["rate"] = review.rate
+        data["reviewComment"] = review.reviewComment
+        data["reviewImages"] = [image.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
+        data["reviewTags"] = review.reviewTags
+        data["reviewLikes"] = review.reviewLikes
+        data["replyDateTime"] = ""
+        data["replyComment"] = ""
+        if review.reply:
+                data["replyDateTime"] = ReplyByStaff.objects.get(parent_reviewID=review.reviewID).replyDateTime
+                data["replyComment"] = ReplyByStaff.objects.get(parent_reviewID=review.reviewID).replyContent
+        dishes = []
+        for dishreview in DishReview.objects.filter(reviewID=review.reviewID):
+            dish_data = {}
+            dish_data["dishID"] = dishreview.dishID.pk
+            dish_data["dishName"] = dishreview.dishID.dishName
+            dishes.append(dish_data)
+        data["dishes"] = dishes
+        data_list.append(data)
+    return data_list
