@@ -450,18 +450,20 @@ def recommenddish(request):
         try:
             numbers = int(request.query_params["numbers"])
             if likes:
-                dish_list = Dish.objects.order_by("-dishLikes")[:numbers]
+                dish_list = Dish.objects.order_by("-dishLikes")[:numbers].exclude(is_active=False)
             else:
-                dish_list = Dish.objects.all()[:numbers]
+                dish_list = Dish.objects.all()[:numbers].exclude(is_active=False)
         except:
             if likes:
-                dish_list = Dish.objects.order_by("-dishLikes")
+                dish_list = Dish.objects.order_by("-dishLikes").exclude(is_active=False)
             else:
-                dish_list = Dish.objects.all()
+                dish_list = Dish.objects.all().exclude(is_active=False)
         messages = []
         for dish in dish_list:
             messages.append(format_recommend_dish(dish,user,login))
-        data["messages"] = messages
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = messages
 
     return Response(data)
 

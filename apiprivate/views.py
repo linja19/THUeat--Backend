@@ -451,6 +451,22 @@ def notice(request):
             data["message"] = "something wrong"
     return Response(data)
 
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def delete_notice(request,noticeID):
+    data = {}
+    if request.method=='DELETE':
+        try:
+            notice = Notice.objects.get(pk=noticeID)
+            notice.delete()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        except:
+            data["code"] = 404
+            data["message"] = "noticeID not found"
+    return Response(data)
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAdmin])
@@ -534,6 +550,52 @@ def stalls_status(request,stallID):
 @permission_classes([IsStaff])
 def mystall(request):
     data = {}
+    if request.method=="GET":
+        user = get_user_by_request_token(request)
+        staff = Staff.objects.get(user=user.pk)
+        stall = Stall.objects.get(stallID=staff.stallID.pk)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_mystall(stall)
+    elif request.method=="POST":
+        user = get_user_by_request_token(request)
+        staff = Staff.objects.get(user=user.pk)
+        stall = Stall.objects.get(stallID=staff.stallID.pk)
+        request_data = {
+            "stallName":request.data["stallName"],
+            "stallFloor":request.data["stallFloor"],
+            "stallDescribe":request.data["stallDescribe"],
+            "stallOperationtime":request.data["stallOperationtime"]
+        }
+        mystallserializer = MystallSerializer(stall,data=request_data)
+        if mystallserializer.is_valid():
+            mystallserializer.save()
+            try:
+                image_list = dict((request.data).lists())['stallImages']
+                if image_list:
+                    try:
+                        default = StallImage.objects.get(stallID=stall.stallID,stallImage="/images/default/default_stall.png")
+                        default.delete()
+                    except:
+                        pass
+                    for image in image_list:
+                        request_data = {
+                            "stallID": stall.stallID,
+                            "stallImage": image
+                        }
+                        serializers = StallImageSerializer(data=request_data)
+                        if serializers.is_valid():
+                            serializers.save()
+                            data["code"] = 200
+                        else:
+                            data = serializers.errors
+            except:
+                pass
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "something wrong"
     return Response(data)
 
 @api_view(['GET'])
@@ -573,6 +635,10 @@ def create_reply(request,reviewID):
             data["code"] = 404
             data["message"] = "review not exists"
             return Response(data)
+        if not review.stallID.pk==staff.stallID.pk:
+            data["code"] = 403
+            data["message"] = "no permission"
+            return Response(data)
         request_data = {
             "parent_reviewID":reviewID,
             "replyContent":request.data["replyComment"],
@@ -595,6 +661,42 @@ def create_reply(request,reviewID):
 @permission_classes([IsStaff])
 def dish(request):
     data = {}
+    if request.method=="GET":
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+            return Response(data)
+        dish_list = Dish.objects.filter(stallID=staff.stallID)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_dish_list(dish_list)
+    elif request.method=="POST":
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+            return Response(data)
+        request_data = {
+            "dishName": request.data["dishName"],
+            "dishDescribe": request.data["dishIntro"],
+            "dishPrice": request.data["dishPrice"],
+            "dishImage": request.data["dishImage"],
+            "dishAvailableTime": request.data["dishAvailableTime"],
+            "stallID":staff.stallID.pk
+        }
+        serializers = CreateDishSerializer(data=request_data)
+        if serializers.is_valid():
+            serializers.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "something wrong"
     return Response(data)
 
 @api_view(['GET','POST'])
@@ -602,4 +704,47 @@ def dish(request):
 @permission_classes([IsStaff])
 def dish_detail(request,dishID):
     data = {}
+    if request.method=="POST":
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+            return Response(data)
+        dish = Dish.objects.get(dishID=dishID)
+        request_data = {
+            "dishName": request.data["dishName"],
+            "dishDescribe": request.data["dishIntro"],
+            "dishPrice": request.data["dishPrice"],
+            "dishImage": request.data["dishImage"],
+            "dishAvailableTime": request.data["dishAvailableTime"],
+            "is_active":request.data["dishStatus"],
+            "stallID": staff.stallID.pk
+        }
+        serializers = CreateDishSerializer(dish,data=request_data)
+        if serializers.is_valid():
+            serializers.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "something wrong"
+            data = serializers.errors
+    elif request.method=="GET":
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+            return Response(data)
+        dish = Dish.objects.get(dishID=dishID)
+        if not dish.stallID==staff.stallID:
+            data["code"] = 403
+            data["message"] = "no permission"
+            return Response(data)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_dish(dish)
     return Response(data)

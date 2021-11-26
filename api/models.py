@@ -93,6 +93,8 @@ class Canteen(models.Model):
     canteenType = models.IntegerField()
     canteenOperationTime = models.CharField(max_length=100,blank=True)
     canteenPhone = models.CharField(max_length=30,default=None)
+    canteenFloor = models.CharField(max_length=10,default=None)
+
     def __str__(self):
         return self.canteenName
 
@@ -110,6 +112,7 @@ class Stall(models.Model):
     stallRateNum = models.IntegerField(blank=True,null=True,default=0)
     canteenID = models.ForeignKey(Canteen,on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
+    stallOperationtime = models.CharField(max_length=100,default=None)
 
     def __str__(self):
         return self.stallName
@@ -163,6 +166,7 @@ class Dish(models.Model):
     dishLikes = models.IntegerField(default=0,blank=True,null=True)
     dishAvailableTime = models.CharField(max_length=4, default='1234')
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.dishName

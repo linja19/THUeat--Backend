@@ -85,3 +85,19 @@ class ReplySerializer(serializers.ModelSerializer):
     class Meta:
         model = ReplyByStaff
         fields = ["parent_reviewID","replyContent","stallID"]
+
+class MystallSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Stall
+        fields = ["stallName","stallFloor","stallDescribe","stallOperationtime"]
+
+class StallImageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = StallImage
+        fields = ["stallImage","stallID"]
+
+class CreateDishSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dish
+        fields = ["dishName","dishDescribe","dishPrice","dishImage","dishAvailableTime","stallID","is_active"]
+
