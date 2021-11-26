@@ -70,6 +70,7 @@ def format_notice_list(notice_list):
     datalist = []
     for notice in notice_list:
         data = {}
+        data["noticeID"] = notice.pk
         data["noticeTitle"] = notice.noticeTitle
         data["noticeWords"] = notice.noticeWords
         data["noticeImage"] = notice.noticeImage.url

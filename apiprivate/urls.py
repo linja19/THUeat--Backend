@@ -12,6 +12,7 @@ urlpatterns = [
     path('users/<int:userID>', views.userdetails, name="user-details"),
     path('adminStatistics', views.adminstatistic, name="admin-statistics"),
     path('notice', views.notice, name="notice"),
+    path('notice/<noticeID>', views.delete_notice, name="delete-notice"),
     path('canteens', views.canteen, name="canteen"),
     path('canteens/names', views.canteen_name, name="canteen-name"),
     path('stalls', views.stalls, name="stall"),

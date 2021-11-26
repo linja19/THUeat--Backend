@@ -451,6 +451,22 @@ def notice(request):
             data["message"] = "something wrong"
     return Response(data)
 
+@api_view(['DELETE'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def delete_notice(request,noticeID):
+    data = {}
+    if request.method=='DELETE':
+        try:
+            notice = Notice.objects.get(pk=noticeID)
+            notice.delete()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        except:
+            data["code"] = 404
+            data["message"] = "noticeID not found"
+    return Response(data)
+
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAdmin])
