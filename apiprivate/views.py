@@ -429,3 +429,177 @@ def adminstatistic(request):
         data["message"] = "successful operation"
         data["data"] = format_admin_statistic()
     return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def notice(request):
+    data = {}
+    if request.method=='GET':
+        notice_list = Notice.objects.all()
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_notice_list(notice_list)
+    elif request.method=="POST":
+        noticeserializer = CreateNoticeSerializer(data=request.data)
+        if noticeserializer.is_valid():
+            noticeserializer.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "something wrong"
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def canteen(request):
+    data = {}
+    if request.method=='GET':
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_canteen()
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def canteen_name(request):
+    data = {}
+    if request.method == 'GET':
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_canteen_name()
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def stalls(request):
+    data = {}
+    if request.method == 'GET':
+        data["code"] = 200
+        data["message"] = "successful operation"
+        try:
+            canteenID = request.query_params["canteenID"]
+            stall_list = Stall.objects.filter(canteenID=canteenID)
+        except:
+            stall_list = Stall.objects.all()
+        try:
+            if request.query_params["status"]=="True":
+                status = True
+            elif request.query_params["status"]=="False":
+                status = False
+            stall_list = stall_list.filter(is_active=status)
+        except:
+            pass
+        data["data"] = format_stall_list(stall_list)
+    elif request.method == 'POST':
+        stallserializer = CreateStallSerializer(data=request.data)
+        if stallserializer.is_valid():
+            stallserializer.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "canteenID not exists"
+    return Response(data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsAdmin])
+def stalls_status(request,stallID):
+    data = {}
+    if request.method=="POST":
+        try:
+            stall = Stall.objects.get(stallID=stallID)
+            if request.data["stallStatus"] == True:
+                stall.is_active = True
+                stall.save()
+                data["code"] = 200
+                data["message"] = "successful operation"
+            elif request.data["stallStatus"] == False:
+                stall.is_active = False
+                stall.save()
+                data["code"] = 200
+                data["message"] = "successful operation"
+        except:
+            data["code"] = 400
+            data["message"] = "stallID not exists"
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def mystall(request):
+    data = {}
+    return Response(data)
+
+@api_view(['GET'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def mystall_review(request):
+    data = {}
+    if request.method=="GET":
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+            review_list = Review.objects.filter(stallID=staff.stallID)
+            data["code"] = 200
+            data["message"] = "successful operation"
+            data["data"] = format_review_list(review_list)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+    return Response(data)
+
+@api_view(['POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def create_reply(request,reviewID):
+    data = {}
+    if request.method=='POST':
+        user = get_user_by_request_token(request)
+        try:
+            staff = Staff.objects.get(user=user.pk)
+        except:
+            data["code"] = 404
+            data["message"] = "staff not exists"
+            return Response(data)
+        try:
+            review = Review.objects.get(reviewID=reviewID)
+        except:
+            data["code"] = 404
+            data["message"] = "review not exists"
+            return Response(data)
+        request_data = {
+            "parent_reviewID":reviewID,
+            "replyContent":request.data["replyComment"],
+            "stallID":staff.stallID.pk
+        }
+        replyserializer = ReplySerializer(data=request_data)
+        if replyserializer.is_valid() and not review.reply:
+            replyserializer.save()
+            review.reply = True
+            review.save()
+            data["code"] = 200
+            data["message"] = "successful operation"
+        else:
+            data["code"] = 400
+            data["message"] = "this review has been replied"
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def dish(request):
+    data = {}
+    return Response(data)
+
+@api_view(['GET','POST'])
+@authentication_classes([TokenAuthentication])
+@permission_classes([IsStaff])
+def dish_detail(request,dishID):
+    data = {}
+    return Response(data)

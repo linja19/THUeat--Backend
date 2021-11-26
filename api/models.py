@@ -92,7 +92,7 @@ class Canteen(models.Model):
     canteenIntro = models.CharField(max_length=300,blank=True)
     canteenType = models.IntegerField()
     canteenOperationTime = models.CharField(max_length=100,blank=True)
-
+    canteenPhone = models.CharField(max_length=30,default=None)
     def __str__(self):
         return self.canteenName
 
@@ -103,7 +103,7 @@ def get_file_path_stall(instance, filename):
 
 class Stall(models.Model):
     stallID = models.BigAutoField(primary_key=True)
-    stallName = models.CharField(max_length=30,unique=True)
+    stallName = models.CharField(max_length=30)
     stallFloor = models.IntegerField(null=True)
     stallDescribe = models.CharField(max_length=300,blank=True)
     stallRate = models.FloatField(blank=True,null=True)
@@ -239,7 +239,7 @@ class Notice(models.Model):
     )
 
     noticeImage = models.ImageField(upload_to=get_file_path_notice, null=True,
-                                   blank=True)
+                                   blank=True,default="default/default_notice.jpg")
     # noticeCreateTime = models.DateTimeField(auto_created=True)
     # noticeType = models.CharField(max_length=20,choices=CHOICES)
     noticeTitle = models.CharField(max_length=60,default=None)
