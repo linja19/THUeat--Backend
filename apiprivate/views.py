@@ -561,30 +561,41 @@ def mystall(request):
         user = get_user_by_request_token(request)
         staff = Staff.objects.get(user=user.pk)
         stall = Stall.objects.get(stallID=staff.stallID.pk)
-        mystallserializer = MystallSerializer(stall,data=request.data)
+        request_data = {
+            "stallName":request.data["stallName"],
+            "stallFloor":request.data["stallFloor"],
+            "stallDescribe":request.data["stallDescribe"],
+            "stallOperationtime":request.data["stallOperationtime"]
+        }
+        mystallserializer = MystallSerializer(stall,data=request_data)
         if mystallserializer.is_valid():
             mystallserializer.save()
             try:
-                image_list = request.data["stallImages"]
-                request_data = []
+                image_list = dict((request.data).lists())['stallImages']
                 if image_list:
-                    default = StallImage.objects.get(stallID=stall.stallID,stallImage="/images/default/default_stall.png")
-                    default.delete()
+                    try:
+                        default = StallImage.objects.get(stallID=stall.stallID,stallImage="/images/default/default_stall.png")
+                        default.delete()
+                    except:
+                        pass
                     for image in image_list:
-                        request_data.append(
-                            {
-                                "stallID":stall.stallID,
-                                "stallImage":image
-                            }
-                        )
-                    imageserializer = StallImageSerializer(data=image_list)
-                    if imageserializer.is_valid():
-                        imageserializer.save()
+                        request_data = {
+                            "stallID": stall.stallID,
+                            "stallImage": image
+                        }
+                        serializers = StallImageSerializer(data=request_data)
+                        if serializers.is_valid():
+                            serializers.save()
+                            data["code"] = 200
+                        else:
+                            data = serializers.errors
             except:
                 pass
             data["code"] = 200
+            data["message"] = "successful operation"
         else:
-            data = mystallserializer.errors
+            data["code"] = 400
+            data["message"] = "something wrong"
     return Response(data)
 
 @api_view(['GET'])
