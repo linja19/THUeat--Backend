@@ -635,6 +635,10 @@ def create_reply(request,reviewID):
             data["code"] = 404
             data["message"] = "review not exists"
             return Response(data)
+        if not review.stallID.pk==staff.stallID.pk:
+            data["code"] = 403
+            data["message"] = "no permission"
+            return Response(data)
         request_data = {
             "parent_reviewID":reviewID,
             "replyContent":request.data["replyComment"],
