@@ -95,3 +95,9 @@ class StallImageSerializer(serializers.ModelSerializer):
     class Meta:
         model = StallImage
         fields = ["stallImage","stallID"]
+
+class CreateDishSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dish
+        fields = ["dishName","dishDescribe","dishPrice","dishImage","dishAvailableTime","stallID","is_active"]
+

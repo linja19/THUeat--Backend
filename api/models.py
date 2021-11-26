@@ -166,6 +166,7 @@ class Dish(models.Model):
     dishLikes = models.IntegerField(default=0,blank=True,null=True)
     dishAvailableTime = models.CharField(max_length=4, default='1234')
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
+    is_active = models.BooleanField(default=True)
 
     def __str__(self):
         return self.dishName

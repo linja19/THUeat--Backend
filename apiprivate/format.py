@@ -193,3 +193,53 @@ def get_best_dish_name(stall):
     dish_list = Dish.objects.filter(stallID=stall.stallID)
     best_dish = dish_list.order_by("-dishLikes")[0]
     return best_dish.dishName
+
+def format_dish_list(dish_list):
+    data_list = []
+    for dish in dish_list:
+        data = {}
+        data["dishID"] = dish.dishID
+        data["dishName"] = dish.dishName
+        data["dishIntro"] = dish.dishDescribe
+        data["dishPrice"] = dish.dishPrice
+        data["dishImage"] = dish.dishImage.url
+        data["dishLikes"] = dish.dishLikes
+        data["dishAvailableTime"] = dish.dishAvailableTime
+        data["dishStatus"] = dish.is_active
+        data_list.append(data)
+    return data_list
+
+def format_dish(dish):
+    data = {}
+    data["dishName"] = dish.dishName
+    data["dishIntro"] = dish.dishDescribe
+    data["dishPrice"] = dish.dishPrice
+    data["dishImage"] = dish.dishImage.url
+    data["dishLikes"] = dish.dishLikes
+    data["dishAvailableTime"] = dish.dishAvailableTime
+    data["dishStatus"] = dish.is_active
+    dishreview_list = DishReview.objects.filter(dishID=dish.dishID)
+    data["reviews"] = format_dishreview_list(dishreview_list)
+    return data
+
+def format_dishreview_list(dishreview_list):
+    data_list = []
+    for dishreview in dishreview_list:
+        review = dishreview.reviewID
+        data = {}
+        data["userName"] = review.userID.userName
+        data["userImage"] = Student.objects.get(user=review.userID).userImage.url
+        data["reviewID"] = review.reviewID
+        data["reviewDateTime"] = review.reviewDateTime
+        data["rate"] = review.rate
+        data["reviewComment"] = review.reviewComment
+        data["reviewImages"] = [image.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
+        data["reviewTags"] = review.reviewTags
+        data["reviewLikes"] = review.reviewLikes
+        data["replyDateTime"] = ""
+        data["replyComment"] = ""
+        if review.reply:
+                data["replyDateTime"] = ReplyByStaff.objects.get(parent_reviewID=review.reviewID).replyDateTime
+                data["replyComment"] = ReplyByStaff.objects.get(parent_reviewID=review.reviewID).replyContent
+        data_list.append(data)
+    return data_list
