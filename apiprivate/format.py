@@ -84,14 +84,32 @@ def format_canteen():
         data = {}
         data["canteenID"] = canteen.canteenID
         data["canteenName"] = canteen.canteenName
-        data["canteenPhone"] = canteen.canteenPhone
-        data["canteenAddress"] = canteen.canteenAddress
-        data["canteenIntro"] = canteen.canteenIntro
-        data["canteenImage"] = canteen.canteenImage.url
-        data["canteenType"] = canteen.canteenType
-        data["canteenOperationtime"] = canteen.canteenOperationTime
+        floor_list = []
+        canteen_floors  = []
+        for floor in canteen.canteenFloor:
+            if floor == "0":
+                floor_list.append(-1)
+            else:
+                floor_list.append(int(floor))
+        stall_list = Stall.objects.filter(canteenID=canteen.canteenID)
+        for floor in floor_list:
+            stall_floor_data = {}
+            stall_floor_data["stallFloor"] = floor
+            stall_floor_data["stalls"] = format_stall_by_floor(stall_list,floor)
+            canteen_floors.append((stall_floor_data))
+        data["canteenFloors"] = canteen_floors
         datalist.append(data)
+
     return datalist
+
+def format_stall_by_floor(stall_list,floor):
+    data_list = []
+    for stall in stall_list.filter(stallFloor=floor):
+        data = {}
+        data["stallName"] = stall.stallName
+        data["stallID"] = stall.stallID
+        data_list.append(data)
+    return data_list
 
 def format_canteen_name():
     datalist = []
@@ -100,7 +118,13 @@ def format_canteen_name():
         data = {}
         data["canteenID"] = canteen.canteenID
         data["canteenName"] = canteen.canteenName
-        data["canteenType"] = canteen.canteenType
+        floor_list = []
+        for floor in canteen.canteenFloor:
+            if floor=="0":
+                floor_list.append(-1)
+            else:
+                floor_list.append(int(floor))
+        data["canteenFloor"] = floor_list
         datalist.append(data)
     return datalist
 
@@ -143,3 +167,29 @@ def format_review_list(review_list):
         data["dishes"] = dishes
         data_list.append(data)
     return data_list
+
+def format_mystall(stall):
+    data = {}
+    canteen = Canteen.objects.get(canteenID=stall.canteenID.pk)
+    data["stallName"] = stall.stallName
+    data["stallFloor"] = stall.stallFloor
+    data["stallDescribe"] = stall.stallDescribe
+    data["canteenName"] = canteen.canteenName
+    data["stallStatus"] = stall.is_active
+    data["stallImages"] = [stallimage.stallImage.url for stallimage in StallImage.objects.filter(stallID=stall.stallID)]
+    data["stallRate"] = stall.stallRate
+    data["stallRateNumber"] = stall.stallRateNum
+    data["canteenRate"] = calculate_canteen_rate(canteen)
+    data["bestDishName"] = get_best_dish_name(stall)
+    data["stallOperationtime"] = stall.stallOperationtime
+    return data
+
+def calculate_canteen_rate(canteen):
+    stall_list = Stall.objects.filter(canteenID=canteen.canteenID)
+    rate = stall_list.aggregate(models.Avg('stallRate'))
+    return rate
+
+def get_best_dish_name(stall):
+    dish_list = Dish.objects.filter(stallID=stall.stallID)
+    best_dish = dish_list.order_by("-dishLikes")[0]
+    return best_dish.dishName

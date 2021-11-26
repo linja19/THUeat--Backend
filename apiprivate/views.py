@@ -550,6 +550,41 @@ def stalls_status(request,stallID):
 @permission_classes([IsStaff])
 def mystall(request):
     data = {}
+    if request.method=="GET":
+        user = get_user_by_request_token(request)
+        staff = Staff.objects.get(user=user.pk)
+        stall = Stall.objects.get(stallID=staff.stallID.pk)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_mystall(stall)
+    elif request.method=="POST":
+        user = get_user_by_request_token(request)
+        staff = Staff.objects.get(user=user.pk)
+        stall = Stall.objects.get(stallID=staff.stallID.pk)
+        mystallserializer = MystallSerializer(stall,data=request.data)
+        if mystallserializer.is_valid():
+            mystallserializer.save()
+            try:
+                image_list = request.data["stallImages"]
+                request_data = []
+                if image_list:
+                    default = StallImage.objects.get(stallID=stall.stallID,stallImage="/images/default/default_stall.png")
+                    default.delete()
+                    for image in image_list:
+                        request_data.append(
+                            {
+                                "stallID":stall.stallID,
+                                "stallImage":image
+                            }
+                        )
+                    imageserializer = StallImageSerializer(data=image_list)
+                    if imageserializer.is_valid():
+                        imageserializer.save()
+            except:
+                pass
+            data["code"] = 200
+        else:
+            data = mystallserializer.errors
     return Response(data)
 
 @api_view(['GET'])
