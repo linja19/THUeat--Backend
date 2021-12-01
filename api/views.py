@@ -273,7 +273,7 @@ def recommendstall(request):
             else:
                 stall_list = Stall.objects.all()[:numbers].exclude(is_active=False)
         except:
-            if likes:
+            if ratings:
                 stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False)
             else:
                 stall_list = Stall.objects.all().exclude(is_active=False)
@@ -283,9 +283,9 @@ def recommendstall(request):
     return Response(data)
 
 @api_view(["GET"])
-@authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
-def stalls(request):
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+def stalls(request, stallID):
     data = {}
     if request.method=='GET':    
         try:
@@ -294,16 +294,15 @@ def stalls(request):
         except:
             user = 0
             login = False
+        stall = Stall.objects.get(stallID=stallID)
         try:
-            stall = Stall.objects.get(stallID=stallID)
             data["code"] = 200
             data["message"] = "successful operation"
             data["data"] = format_stall(stall, user, login)
         except:
             data["code"] = 404
-            data["message"] = "stall not found"
+            data["message"] = "stall not found"            
     return Response(data)
-
 
 @api_view(["POST","GET","DELETE"])
 @authentication_classes([TokenAuthentication])
