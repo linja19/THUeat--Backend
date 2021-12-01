@@ -172,7 +172,8 @@ def staffstatus(request,staffID):
     data = {}
     if request.method=="POST":
         try:
-            user = User.objects.get(id=int(staffID))
+            staff = Staff.objects.get(staffID=int(staffID))
+            user = User.objects.get(id=staff.user.pk)
             if user.is_admin == True or user.is_superuser == True:
                 data["code"] = 400
                 data["message"] = "no permission"
@@ -252,7 +253,8 @@ def adminstatus(request,adminID):
     data = {}
     if request.method=="POST":
         try:
-            user = User.objects.get(id=int(adminID))
+            admin = Admin.objects.get(adminID=int(adminID))
+            user = User.objects.get(id=admin.user.pk)
             if user.is_superuser:
                 data["code"] = 400
                 data["message"] = "Superadmin cannot be inactivated"
@@ -441,7 +443,12 @@ def notice(request):
         data["message"] = "successful operation"
         data["data"] = format_notice_list(notice_list)
     elif request.method=="POST":
-        noticeserializer = CreateNoticeSerializer(data=request.data)
+        request_data = {
+            "noticeImage":request.data["noticeImage"],
+            "noticeTitle": request.data["noticeTitle"],
+            "noticeWords": request.data["noticeWords"]
+        }
+        noticeserializer = CreateNoticeSerializer(data=request_data)
         if noticeserializer.is_valid():
             noticeserializer.save()
             data["code"] = 200
@@ -512,7 +519,12 @@ def stalls(request):
             pass
         data["data"] = format_stall_list(stall_list)
     elif request.method == 'POST':
-        stallserializer = CreateStallSerializer(data=request.data)
+        request_data = {
+            "stallName":request.data["stallName"],
+            "stallFloor": request.data["stallFloor"],
+            "canteenID": request.data["canteenID"],
+        }
+        stallserializer = CreateStallSerializer(data=request_data)
         if stallserializer.is_valid():
             stallserializer.save()
             data["code"] = 200
