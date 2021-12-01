@@ -53,7 +53,7 @@ class UpdateStudentSerializer(serializers.ModelSerializer):
         fields = ['userEmail','userImage']
     def update(self,instance,validated_data):       # overwrite update function
         instance.userEmail = validated_data['userEmail']
-        # instance.userImage = validated_data['userImage']
+        instance.userImage = validated_data['userImage']
         instance.save()
         return instance
 

@@ -83,7 +83,7 @@ def create_auth_token(sender,instance=None,created=False,**kwargs):
 def get_file_path_canteen(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (uuid.uuid4(), ext)
-    return os.path.join("user",filename)
+    return os.path.join("canteens",filename)
 
 class Canteen(models.Model):
     canteenID = models.BigAutoField(primary_key=True)
@@ -113,7 +113,7 @@ class Stall(models.Model):
     stallRateNum = models.IntegerField(blank=True,null=True,default=0)
     canteenID = models.ForeignKey(Canteen,on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
-    stallOperationtime = models.CharField(max_length=100,default=None)
+    stallOperationtime = models.CharField(max_length=100,default=None,blank=True,null=True)
 
     def __str__(self):
         return self.stallName
