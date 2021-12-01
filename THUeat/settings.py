@@ -86,7 +86,6 @@ WSGI_APPLICATION = 'THUeat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
-settings.py
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
