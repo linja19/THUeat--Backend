@@ -38,7 +38,8 @@ def login(request):
                 data["data"] = {
                     "token": Token.objects.get(user_id=user.id).key,
                     "firstLogin": first_login,
-                    "type": type
+                    "type": type,
+                    "validName": user.userName,
                 }
             else:
                 data["code"] = 400
@@ -350,48 +351,76 @@ def selfdetails(request):
             data["code"] = 400
             data["message"] = "token not provided"
             return Response(data)
+
+        if request.data["phone"]=="":
+            phone = user.userPhone
+        else:
+            phone = request.data["phone"]
         user_data = {
-            'userName':request.data["name"],
-            'userPhone':request.data["phone"],
-            'password':request.data["password"]
+            'userName': request.data["name"],
+            'userPhone': phone,
         }
-        if user.is_admin:
-            serializers = UpdateAdminSerializer(user,data=user_data)
-            if serializers.is_valid() and user.check_password(request.data["oldPassword"]):
-                serializers.save()
-                admin = Admin.objects.get(user=user.pk)
-                data["code"] = 200
-                if admin.first_login:
-                    data["message"] = "successful operation, account activated successful"
-                    admin.first_login = False
-                    user.is_active = True
-                    admin.save()
-                    user.save()
-                else:
+        if request.data["oldPassword"]=="":
+            if user.is_admin:
+                serializers = UpdateAdminDetailsSerializer(user,data=user_data)
+                if serializers.is_valid():
+                    serializers.save()
+                    admin = Admin.objects.get(user=user.pk)
+                    data["code"] = 200
                     data["message"] = "successful operation"
-            else:
-                data["code"] = 200
-                if user.check_password(request.data["oldPassword"]):
-                    data["message"] = "wrong password"
                 else:
+                    data["code"] = 400
                     data["message"] = "username exists"
-        elif user.is_staff:
-            serializers = UpdateAdminSerializer(user, data=user_data)
-            if serializers.is_valid() and user.check_password(request.data["oldPassword"]):
-                serializers.save()
-                staff = Staff.objects.get(user=user.pk)
-                data["code"] = 200
-                if staff.first_login:
-                    data["message"] = "successful operation, account activated successful"
-                    staff.first_login = False
-                    user.is_active = True
-                    staff.save()
-                    user.save()
-                else:
+            elif user.is_staff:
+                serializers = UpdateAdminDetailsSerializer(user, data=user_data)
+                if serializers.is_valid():
+                    serializers.save()
+                    staff = Staff.objects.get(user=user.pk)
+                    data["code"] = 200
                     data["message"] = "successful operation"
-            else:
-                data["code"] = 200
-                data["message"] = "wrong password"
+                else:
+                    data["code"] = 200
+                    data["message"] = "something wrong"
+            pass
+        else:
+            user_data["password"] = request.data["password"]
+            if user.is_admin:
+                serializers = UpdateAdminSerializer(user,data=user_data)
+                if serializers.is_valid() and user.check_password(request.data["oldPassword"]):
+                    serializers.save()
+                    admin = Admin.objects.get(user=user.pk)
+                    data["code"] = 200
+                    if admin.first_login:
+                        data["message"] = "successful operation, account activated successful"
+                        admin.first_login = False
+                        user.is_active = True
+                        admin.save()
+                        user.save()
+                    else:
+                        data["message"] = "successful operation"
+                else:
+                    data["code"] = 400
+                    if user.check_password(request.data["oldPassword"]):
+                        data["message"] = "wrong password"
+                    else:
+                        data["message"] = "username exists"
+            elif user.is_staff:
+                serializers = UpdateAdminSerializer(user, data=user_data)
+                if serializers.is_valid() and user.check_password(request.data["oldPassword"]):
+                    serializers.save()
+                    staff = Staff.objects.get(user=user.pk)
+                    data["code"] = 200
+                    if staff.first_login:
+                        data["message"] = "successful operation, account activated successful"
+                        staff.first_login = False
+                        user.is_active = True
+                        staff.save()
+                        user.save()
+                    else:
+                        data["message"] = "successful operation"
+                else:
+                    data["code"] = 200
+                    data["message"] = "wrong password"
     elif request.method=="GET":
         try:
             user = get_user_by_request_token(request)
@@ -703,9 +732,14 @@ def dish(request):
         }
         serializers = CreateDishSerializer(data=request_data)
         if serializers.is_valid():
-            serializers.save()
+            dish = serializers.save()
             data["code"] = 200
             data["message"] = "successful operation"
+            data["data"] = {
+                "dishID":dish.dishID,
+                "dishLikes":dish.dishLikes,
+                "dishStatus":dish.is_active
+            }
         else:
             data["code"] = 400
             data["message"] = "something wrong"
