@@ -294,8 +294,8 @@ def stalls(request, stallID):
         except:
             user = 0
             login = False
-        stall = Stall.objects.get(stallID=stallID)
         try:
+            stall = Stall.objects.get(stallID=stallID)
             data["code"] = 200
             data["message"] = "successful operation"
             data["data"] = format_stall(stall, user, login)
