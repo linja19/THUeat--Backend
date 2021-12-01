@@ -55,6 +55,17 @@ class UpdateUserStatusSerializer(serializers.ModelSerializer):
         instance.save()
         return instance
 
+class UpdateAdminDetailsSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = User
+        fields = ['userName','userPhone']
+
+    def update(self,instance,validated_data):
+        instance.userName = validated_data['userName']
+        instance.userPhone = validated_data['userPhone']
+        instance.save()
+        return instance
+
 class UpdateAdminSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
