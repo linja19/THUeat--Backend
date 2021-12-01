@@ -161,4 +161,4 @@ EMAIL_HOST = 'smtp-mail.outlook.com'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
 EMAIL_HOST_USER = 'thueat2021@outlook.com'
-EMAIL_HOST_PASSWORD = 'tvuamovamfmnfnhe'
+EMAIL_HOST_PASSWORD = 'coozrmcankotpkej'
