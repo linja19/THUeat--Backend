@@ -219,6 +219,90 @@ def user_password(request):
             data['message'] = '旧密码错误'
         return Response(data)
 
+@api_view(["GET"])
+def navigations(request):
+    data = {}
+    if request.method=='GET':
+        canteen_list = Canteen.objects.all()
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_navigations_canteen_list(canteen_list)
+    return Response(data)
+
+
+@api_view(["GET"])
+def navigations_stall(request,stallID):
+    data = {}
+    if request.method=='GET':
+        dish_list = Dish.objects.filter(stallID=stallID, is_active=True)  # find dishes
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_navigations_dish_list(dish_list)
+    return Response(data)
+
+@api_view(["GET"])
+def canteens(request,canteenID):
+    data = {}
+    if request.method=='GET':
+        try:
+            canteen = Canteen.objects.get(canteenID=canteenID)
+            data["code"] = 200
+            data["message"] = "successful operation"
+            data["data"] = format_canteen(canteen)
+        except:
+            data["code"] = 404
+            data["message"] = "canteen not found"
+    return Response(data)
+
+@api_view(["GET"])
+def recommendstall(request):
+    data = {}
+    if request.method=='GET':
+        try:
+            ratings = request.query_params["ratings"]
+            if ratings=="True":
+                ratings = True
+            else:
+                ratings = False
+        except:
+            ratings = False
+        try:
+            numbers = int(request.query_params["numbers"])
+            if ratings:
+                stall_list = Stall.objects.order_by("-stallRate")[:numbers].exclude(is_active=False)
+            else:
+                stall_list = Stall.objects.all()[:numbers].exclude(is_active=False)
+        except:
+            if ratings:
+                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False)
+            else:
+                stall_list = Stall.objects.all().exclude(is_active=False)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_recommend_stall_list(stall_list)
+    return Response(data)
+
+@api_view(["GET"])
+# @authentication_classes([TokenAuthentication])
+# @permission_classes([IsAuthenticated])
+def stalls(request, stallID):
+    data = {}
+    if request.method=='GET':    
+        try:
+            user = get_user_by_request_token(request)     # get user by token
+            login = True
+        except:
+            user = 0
+            login = False
+        try:
+            stall = Stall.objects.get(stallID=stallID)
+            data["code"] = 200
+            data["message"] = "successful operation"
+            data["data"] = format_stall(stall, user, login)
+        except:
+            data["code"] = 404
+            data["message"] = "stall not found"            
+    return Response(data)
 
 @api_view(["POST","GET","DELETE"])
 @authentication_classes([TokenAuthentication])
