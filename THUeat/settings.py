@@ -86,16 +86,19 @@ WSGI_APPLICATION = 'THUeat.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/3.2/ref/settings/#databases
 
+settings.py
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django_database',
-        'USER': 'root',
-        'PASSWORD': 'root',
-        'HOST': '127.0.0.1',
-        'PORT': '3306',
+        'NAME': 'linja19$django_database',
+        'USER': 'linja19',
+        'PASSWORD': 'thueat2021',
+        'HOST': 'linja19.mysql.pythonanywhere-services.com',
         'OPTIONS': {
          "init_command": "SET foreign_key_checks = 0;",
+        },
+        'TEST': {
+          'NAME': 'linja19$test_django_database',
         },
     }
 }
