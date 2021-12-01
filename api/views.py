@@ -180,7 +180,7 @@ def user_details(request):
         student_data = {
             "user": user.pk,
             "userEmail": request.data["userEmail"],
-            # "userImage": request.data["userImage"]
+            "userImage": request.data["userImage"]
         }
         userserializer = UpdateUserSerializer(user,data=user_data)  # create serializer
         studentserializer = UpdateStudentSerializer(student,data=student_data)
@@ -330,14 +330,18 @@ def reviews(request):
             stall = Stall.objects.get(stallID=stallID)
             stall.stallRateNum += 1
             stall.save()
-            for each in request.data["reviewImages"]:                   # for each image,create serializer and save
-                reviewimages_data = {
-                    "reviewID":review.pk,
-                    "reviewImages":each
-                }
-                imageserializer = CreateReviewImagesSerializer(data=reviewimages_data)
-                if imageserializer.is_valid():
-                    imageserializer.save()
+            image_list = dict((request.data).lists())['reviewImages']
+            if image_list:
+                for image in image_list:
+                    reviewimages_data = {
+                        "reviewID": review.pk,
+                        "reviewImages": image
+                    }
+                    imageserializer = CreateReviewImagesSerializer(data=reviewimages_data)
+                    if imageserializer.is_valid():
+                        imageserializer.save()
+                    else:
+                        data = serializers.errors
             for each in request.data["dishID"]:                         # for each dish,create serializer and save
                 dishreview_data = {
                     "reviewID":review.pk,
