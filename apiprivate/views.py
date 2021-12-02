@@ -117,7 +117,7 @@ def createstaff(request):
             staffserializer = StaffRegisterSerializer(data=staff_data)
             if staffserializer.is_valid():
                 staff = staffserializer.save()
-                staff.staffID = Staff.objects.all().count() + 1
+                staff.staffID = Staff.objects.all().count()
                 staff.save()
                 content = '''Hi '''+ staff.staffName + ''', this is your account information, visit the website and login. After login, please change your username and password.
                 username:''' + username + '''
@@ -668,6 +668,11 @@ def mystall_review(request):
     data = {}
     if request.method=="GET":
         user = get_user_by_request_token(request)
+        staff = Staff.objects.get(user=user.pk)
+        review_list = Review.objects.filter(stallID=staff.stallID)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_review_list(review_list)
         try:
             staff = Staff.objects.get(user=user.pk)
             review_list = Review.objects.filter(stallID=staff.stallID)
