@@ -63,15 +63,22 @@ def user_register(request):
             if studentserializer.is_valid():                                    # check studentserializer is_valid
                 student = studentserializer.save()                                        # save studentserializer (save student to database)
                 content = 'This is your verification number:'+student.verificationNumber    # create email content
-                arg = (                                                                     # send_mail args
+                # arg = (                                                                     # send_mail args
+                #     "THU-EAT Verification",
+                #     content,
+                #     settings.EMAIL_HOST_USER,
+                #     [student.userEmail],
+                #     True
+                # )
+                # t1 = threading.Thread(target=send_mail,args=arg)                            # multithreading send verification number to email
+                # t1.start()
+                send_mail(                                                                     # send_mail args
                     "THU-EAT Verification",
                     content,
                     settings.EMAIL_HOST_USER,
                     [student.userEmail],
                     True
                 )
-                t1 = threading.Thread(target=send_mail,args=arg)                            # multithreading send verification number to email
-                t1.start()
                 data['code'] = 200                                              # successful message
                 data['message'] = 'successful operation'
             else:
@@ -287,7 +294,7 @@ def recommendstall(request):
 # @permission_classes([IsAuthenticated])
 def stalls(request, stallID):
     data = {}
-    if request.method=='GET':    
+    if request.method=='GET':
         try:
             user = get_user_by_request_token(request)     # get user by token
             login = True
@@ -301,7 +308,7 @@ def stalls(request, stallID):
             data["data"] = format_stall(stall, user, login)
         except:
             data["code"] = 404
-            data["message"] = "stall not found"            
+            data["message"] = "stall not found"
     return Response(data)
 
 @api_view(["POST","GET","DELETE"])
