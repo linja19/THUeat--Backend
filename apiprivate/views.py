@@ -517,6 +517,7 @@ def delete_notice(request,noticeID):
     if request.method=='DELETE':
         try:
             notice = Notice.objects.get(pk=noticeID)
+            notice.noticeImage.delete(save=True)
             notice.delete()
             data["code"] = 200
             data["message"] = "successful operation"
@@ -633,12 +634,14 @@ def mystall(request):
         mystallserializer = MystallSerializer(stall,data=request_data)
         if mystallserializer.is_valid():
             mystallserializer.save()
-            try:
+            if request.data["stallImages"]:
                 image_list = dict((request.data).lists())['stallImages']
                 if image_list:
                     try:
-                        default = StallImage.objects.get(stallID=stall.stallID,stallImage="/images/default/default_stall.png")
-                        default.delete()
+                        current_image_list = StallImage.objects.filter(stallID=stall.stallID)
+                        for current_image in current_image_list:
+                            current_image.stallImage.delete(save=True)
+                            current_image.delete()
                     except:
                         pass
                     for image in image_list:
@@ -652,7 +655,7 @@ def mystall(request):
                             data["code"] = 200
                         else:
                             data = serializers.errors
-            except:
+            else:
                 pass
             data["code"] = 200
             data["message"] = "successful operation"
@@ -786,16 +789,27 @@ def dish_detail(request,dishID):
             data["message"] = "staff not exists"
             return Response(data)
         dish = Dish.objects.get(dishID=dishID)
-        request_data = {
-            "dishName": request.data["dishName"],
-            "dishDescribe": request.data["dishIntro"],
-            "dishPrice": request.data["dishPrice"],
-            "dishImage": request.data["dishImage"],
-            "dishAvailableTime": request.data["dishAvailableTime"],
-            "is_active":request.data["dishStatus"],
-            "stallID": staff.stallID.pk
-        }
-        serializers = CreateDishSerializer(dish,data=request_data)
+        if request.data["dishImage"]:
+            request_data = {
+                "dishName": request.data["dishName"],
+                "dishDescribe": request.data["dishIntro"],
+                "dishPrice": request.data["dishPrice"],
+                "dishImage": request.data["dishImage"],
+                "dishAvailableTime": request.data["dishAvailableTime"],
+                "is_active": request.data["dishStatus"],
+                "stallID": staff.stallID.pk
+            }
+            serializers = CreateDishSerializer(dish, data=request_data)
+        else:
+            request_data = {
+                "dishName": request.data["dishName"],
+                "dishDescribe": request.data["dishIntro"],
+                "dishPrice": request.data["dishPrice"],
+                "dishAvailableTime": request.data["dishAvailableTime"],
+                "is_active":request.data["dishStatus"],
+                "stallID": staff.stallID.pk
+            }
+            serializers = CreateDishDetailSerializer(dish,data=request_data)
         if serializers.is_valid():
             serializers.save()
             data["code"] = 200

@@ -184,13 +184,20 @@ def user_details(request):
             "userName": request.data["userName"],
             "userPhone": request.data["userPhone"]
         }
-        student_data = {
-            "user": user.pk,
-            "userEmail": request.data["userEmail"],
-            "userImage": request.data["userImage"]
-        }
-        userserializer = UpdateUserSerializer(user,data=user_data)  # create serializer
-        studentserializer = UpdateStudentSerializer(student,data=student_data)
+        userserializer = UpdateUserSerializer(user, data=user_data)  # create serializer
+        if request.data["userImage"]:
+            student_data = {
+                "user": user.pk,
+                "userEmail": request.data["userEmail"],
+                "userImage": request.data["userImage"]
+            }
+            studentserializer = UpdateStudentSerializer(student, data=student_data)
+        else:
+            student_data = {
+                "user": user.pk,
+                "userEmail": request.data["userEmail"]
+            }
+            studentserializer = UpdateStudentEmailSerializer(student, data=student_data)
         if (userserializer.is_valid())&(studentserializer.is_valid()):  # check serializer (check data)
             userserializer.save()                    # save serializer (update data)
             studentserializer.save()
@@ -276,9 +283,9 @@ def recommendstall(request):
         try:
             numbers = int(request.query_params["numbers"])
             if ratings:
-                stall_list = Stall.objects.order_by("-stallRate")[:numbers].exclude(is_active=False)
+                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False)[:numbers]
             else:
-                stall_list = Stall.objects.all()[:numbers].exclude(is_active=False)
+                stall_list = Stall.objects.all().exclude(is_active=False)[:numbers]
         except:
             if ratings:
                 stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False)
@@ -303,9 +310,13 @@ def stalls(request, stallID):
             login = False
         try:
             stall = Stall.objects.get(stallID=stallID)
-            data["code"] = 200
-            data["message"] = "successful operation"
-            data["data"] = format_stall(stall, user, login)
+            if stall.is_active:
+                data["code"] = 200
+                data["message"] = "successful operation"
+                data["data"] = format_stall(stall, user, login)
+            else:
+                data["code"] = 400
+                data["message"] = "stall inactive"
         except:
             data["code"] = 404
             data["message"] = "stall not found"
@@ -513,9 +524,13 @@ def dishes(request,dishID):
 
         try:
             dish = Dish.objects.get(dishID=dishID)
-            data["code"] = 200
-            messages = format_dish(dish, user, login)
-            data["messages"] = messages
+            if dish.is_active:
+                data["code"] = 200
+                data["messages"] = "successful operation"
+                data["data"] = format_dish(dish, user, login)
+            else:
+                data["code"] = 400
+                data["messages"] = "dish inactive"
         except:
             data["code"] = 404
             data["messages"] = "dish not found"
@@ -545,9 +560,9 @@ def recommenddish(request):
         try:
             numbers = int(request.query_params["numbers"])
             if likes:
-                dish_list = Dish.objects.order_by("-dishLikes")[:numbers].exclude(is_active=False)
+                dish_list = Dish.objects.order_by("-dishLikes").exclude(is_active=False)[:numbers]
             else:
-                dish_list = Dish.objects.all()[:numbers].exclude(is_active=False)
+                dish_list = Dish.objects.all().exclude(is_active=False)[:numbers]
         except:
             if likes:
                 dish_list = Dish.objects.order_by("-dishLikes").exclude(is_active=False)
