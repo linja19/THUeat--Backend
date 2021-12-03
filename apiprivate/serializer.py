@@ -112,3 +112,20 @@ class CreateDishSerializer(serializers.ModelSerializer):
         model = Dish
         fields = ["dishName","dishDescribe","dishPrice","dishImage","dishAvailableTime","stallID","is_active"]
 
+    def update(self,instance,validated_data):       # overwrite update function
+        instance.dishImage.delete(save=True)
+        instance.dishName = validated_data['dishName']
+        instance.dishDescribe = validated_data['dishDescribe']
+        instance.dishPrice = validated_data['dishPrice']
+        instance.dishImage = validated_data['dishImage']
+        instance.dishAvailableTime = validated_data['dishAvailableTime']
+        instance.stallID = validated_data['stallID']
+        instance.is_active = validated_data['is_active']
+        instance.save()
+        return instance
+
+class CreateDishDetailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Dish
+        fields = ["dishName","dishDescribe","dishPrice","dishAvailableTime","stallID","is_active"]
+
