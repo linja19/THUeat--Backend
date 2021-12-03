@@ -52,8 +52,18 @@ class UpdateStudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['userEmail','userImage']
     def update(self,instance,validated_data):       # overwrite update function
+        instance.userImage.delete(save=True)
         instance.userEmail = validated_data['userEmail']
         instance.userImage = validated_data['userImage']
+        instance.save()
+        return instance
+
+class UpdateStudentEmailSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Student
+        fields = ['userEmail']
+    def update(self,instance,validated_data):       # overwrite update function
+        instance.userEmail = validated_data['userEmail']
         instance.save()
         return instance
 
