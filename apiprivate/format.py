@@ -201,7 +201,8 @@ def format_dish_list(dish_list):
         data["dishName"] = dish.dishName
         data["dishIntro"] = dish.dishDescribe
         data["dishPrice"] = dish.dishPrice
-        data["dishImage"] = BASE_URL + dish.dishImage.url
+        image_list = DishImage.objects.filter(dishID=dish.pk)
+        data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
         data["dishLikes"] = dish.dishLikes
         data["dishAvailableTime"] = dish.dishAvailableTime
         data["dishStatus"] = dish.is_active
@@ -213,7 +214,8 @@ def format_dish(dish):
     data["dishName"] = dish.dishName
     data["dishIntro"] = dish.dishDescribe
     data["dishPrice"] = dish.dishPrice
-    data["dishImage"] = BASE_URL + dish.dishImage.url
+    image_list = DishImage.objects.filter(dishID=dish.pk)
+    data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
     data["dishLikes"] = dish.dishLikes
     data["dishAvailableTime"] = dish.dishAvailableTime
     data["dishStatus"] = dish.is_active

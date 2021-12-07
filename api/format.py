@@ -66,7 +66,11 @@ def format_recommend_stall_list(stall_list):
         data["stallRate"] = stall.stallRate
         data["stallRateNumber"] = stall.stallRateNum
         image_list = StallImage.objects.filter(stallID=stall.pk)
-        data["stallImages"] = [BASE_URL + image.stallImage.url for image in image_list]
+        data["stallImages"] = ""
+        try:
+            data["stallImages"] = BASE_URL + image_list[0].stallImage.url
+        except:
+            pass
         data["stallName"] = stall.stallName
         data["canteenName"] = stall.canteenID.canteenName
         review_list = Review.objects.filter(stallID=stall.pk)
@@ -90,7 +94,8 @@ def format_stall_dish(dish,user,login):
     data = {}
     data["dishID"] = dish.dishID
     data["dishName"] = dish.dishName
-    data["dishImage"] = BASE_URL + dish.dishImage.url
+    image_list = DishImage.objects.filter(dishID=dish.pk)
+    data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
     data["dishPrice"] = dish.dishPrice
     data["dishLikes"] = dish.dishLikes
     if login:
@@ -237,7 +242,8 @@ def format_dish(dish,user,login):
     data["dishName"] = dish.dishName
     data["dishIntro"] = dish.dishDescribe
     data["dishPrice"] = dish.dishPrice
-    data["dishImage"] = BASE_URL + dish.dishImage.url
+    image_list = DishImage.objects.filter(dishID=dish.pk)
+    data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
     data["dishLikes"] = dish.dishLikes
     data["dishAvailableTime"] = dish.dishAvailableTime
     if login:
@@ -287,7 +293,12 @@ def format_recommend_dish(dish,user,login):
     data["dishName"] = dish.dishName
     # data["dishIntro"] = dish.dishDescribe
     data["dishPrice"] = dish.dishPrice
-    data["dishImage"] = BASE_URL + dish.dishImage.url
+    image_list = DishImage.objects.filter(dishID=dish.pk)
+    data["dishImages"] = ""
+    try:
+        data["dishImages"] = BASE_URL + image_list[0].dishImage.url
+    except:
+        pass
     data["dishLikes"] = dish.dishLikes
     data["dishAvailableTime"] = dish.dishAvailableTime
     if login:
