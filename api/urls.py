@@ -5,8 +5,8 @@ from . import views
 urlpatterns = [
     path('users/', views.user_register, name="register"),
     path('users/verification', views.user_verification, name="verification"),
-    path('authorization', views.user_login, name="login"),
-    path('users/details', views.user_details, name="user-detail"),
+    path('authorization', views.user_login, name="user-login"),
+    path('users/details', views.user_details, name="public-user-detail"),
     path('users/password', views.user_password, name="user-detail-password"),
     path('navigations', views.navigations, name="navigations"),
     path('navigations/stalls/<int:stallID>', views.navigations_stall, name="navigations-stall"),
