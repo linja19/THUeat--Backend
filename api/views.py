@@ -369,7 +369,7 @@ def reviews(request):
             stall.stallRateNum += 1
             stall.save()
             image_list = dict((request.data).lists())['reviewImages']
-            if image_list:
+            if request.data["reviewImages"]:
                 for image in image_list:
                     reviewimages_data = {
                         "reviewID": review.pk,
@@ -379,15 +379,17 @@ def reviews(request):
                     if imageserializer.is_valid():
                         imageserializer.save()
                     else:
-                        data = serializers.errors
-            for each in request.data["dishID"]:                         # for each dish,create serializer and save
-                dishreview_data = {
-                    "reviewID":review.pk,
-                    "dishID":each
-                }
-                serializer = DishReviewSerializer(data=dishreview_data)
-                if serializer.is_valid():
-                    serializer.save()
+                        data = imageserializer.errors
+            dish_list = dict((request.data).lists())['dishID']
+            if request.data["dishID"]:
+                for each in dish_list:                         # for each dish,create serializer and save
+                    dishreview_data = {
+                        "reviewID":review.pk,
+                        "dishID":each
+                    }
+                    serializer = DishReviewSerializer(data=dishreview_data)
+                    if serializer.is_valid():
+                        serializer.save()
             data["code"] = 200
             data["messages"] = 'successful operation'
         else:

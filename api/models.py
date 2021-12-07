@@ -172,6 +172,13 @@ class Dish(models.Model):
     def __str__(self):
         return self.dishName
 
+class DishImage(models.Model):
+    dishImage = models.ImageField(upload_to=get_file_path_dish,default="default/default_dish.png",null=True,blank=True)
+    dishID = models.ForeignKey(Dish,on_delete=models.CASCADE)
+
+    def __str__(self):
+        return str(self.dishID)
+
 def get_file_path_review(instance, filename):
     ext = filename.split('.')[-1]
     filename = "%s.%s" % (uuid.uuid4(), ext)
