@@ -739,13 +739,22 @@ def dish(request):
             "dishName": request.data["dishName"],
             "dishDescribe": request.data["dishIntro"],
             "dishPrice": request.data["dishPrice"],
-            "dishImage": request.data["dishImage"],
             "dishAvailableTime": request.data["dishAvailableTime"],
             "stallID":staff.stallID.pk
         }
         serializers = CreateDishSerializer(data=request_data)
         if serializers.is_valid():
             dish = serializers.save()
+            if request.data["dishImages"]:
+                image_list = dict((request.data).lists())['dishImages']
+                for image in image_list:
+                    image_data = {
+                        "dishID":dish.dishID,
+                        "dishImage":image,
+                    }
+                    imageserializer = DishImageSerializer(data=image_data)
+                    if imageserializer.is_valid():
+                        imageserializer.save()
             data["code"] = 200
             data["message"] = "successful operation"
             data["data"] = {
@@ -772,29 +781,39 @@ def dish_detail(request,dishID):
             data["message"] = "staff not exists"
             return Response(data)
         dish = Dish.objects.get(dishID=dishID)
-        if request.data["dishImage"]:
-            request_data = {
-                "dishName": request.data["dishName"],
-                "dishDescribe": request.data["dishIntro"],
-                "dishPrice": request.data["dishPrice"],
-                "dishImage": request.data["dishImage"],
-                "dishAvailableTime": request.data["dishAvailableTime"],
-                "is_active": request.data["dishStatus"],
-                "stallID": staff.stallID.pk
-            }
-            serializers = CreateDishSerializer(dish, data=request_data)
-        else:
-            request_data = {
-                "dishName": request.data["dishName"],
-                "dishDescribe": request.data["dishIntro"],
-                "dishPrice": request.data["dishPrice"],
-                "dishAvailableTime": request.data["dishAvailableTime"],
-                "is_active":request.data["dishStatus"],
-                "stallID": staff.stallID.pk
-            }
-            serializers = CreateDishDetailSerializer(dish,data=request_data)
+        request_data = {
+            "dishName": request.data["dishName"],
+            "dishDescribe": request.data["dishIntro"],
+            "dishPrice": request.data["dishPrice"],
+            "dishAvailableTime": request.data["dishAvailableTime"],
+            "is_active": request.data["dishStatus"],
+            "stallID": staff.stallID.pk
+        }
+        serializers = CreateDishDetailSerializer(dish, data=request_data)
         if serializers.is_valid():
             serializers.save()
+
+            if request.data["deleteImages"]:
+                try:
+                    delete_list = dict((request.data).lists())['deleteImages']
+                    for imageURL in delete_list:
+                        url = re.search(".*images/(.*)", imageURL).group(1)
+                        image = DishImage.objects.get(dishImage=url)
+                        image.dishImage.delete(save=True)
+                        image.delete()
+                except:
+                    data["message"] = "Image url problem,"
+
+            if request.data["dishImages"]:
+                image_list = dict((request.data).lists())['dishImages']
+                for image in image_list:
+                    image_data = {
+                        "dishID":dish.dishID,
+                        "dishImage":image
+                    }
+                    imageserializer = DishImageSerializer(data=image_data)
+                    if imageserializer.is_valid():
+                        imageserializer.save()
             data["code"] = 200
             data["message"] = "successful operation"
         else:
