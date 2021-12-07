@@ -159,7 +159,7 @@ class Dish(models.Model):
     ]
 
     dishID = models.BigAutoField(primary_key=True)
-    dishName = models.CharField(max_length=30, unique=True)
+    dishName = models.CharField(max_length=30)
     dishPrice = models.FloatField()
     dishImage = models.ImageField(upload_to=get_file_path_dish, default="default/default_dish.jpg", null=True,
                                    blank=True)
