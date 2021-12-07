@@ -614,6 +614,7 @@ def stalls_status(request,stallID):
 @permission_classes([IsStaff])
 def mystall(request):
     data = {}
+    data["message"] = ""
     if request.method=="GET":
         user = get_user_by_request_token(request)
         staff = Staff.objects.get(user=user.pk)
@@ -644,11 +645,10 @@ def mystall(request):
                         image.delete()
                 except:
                     data["message"] = "Image url problem,"
-
+            successful_image = []
             if request.data["stallImages"]:
                 image_list = dict((request.data).lists())['stallImages']
                 if image_list:
-
                     for image in image_list:
                         request_data = {
                             "stallID": stall.stallID,
@@ -656,14 +656,15 @@ def mystall(request):
                         }
                         serializers = StallImageSerializer(data=request_data)
                         if serializers.is_valid():
-                            serializers.save()
-                            data["code"] = 200
+                            stall_image = serializers.save()
+                            successful_image.append(BASE_URL+stall_image.stallImage.url)
                         else:
                             data = serializers.errors
             else:
                 pass
             data["code"] = 200
             data["message"] += "successful operation"
+            data["data"] = {"stallImages":successful_image}
         else:
             data["code"] = 400
             data["message"] = "something wrong"
@@ -767,6 +768,7 @@ def dish(request):
         serializers = CreateDishSerializer(data=request_data)
         if serializers.is_valid():
             dish = serializers.save()
+            successful_image = []
             if request.data["dishImages"]:
                 image_list = dict((request.data).lists())['dishImages']
                 for image in image_list:
@@ -776,13 +778,15 @@ def dish(request):
                     }
                     imageserializer = DishImageSerializer(data=image_data)
                     if imageserializer.is_valid():
-                        imageserializer.save()
+                        dishimage = imageserializer.save()
+                        successful_image.append(BASE_URL+dishimage.dishImage.url)
             data["code"] = 200
             data["message"] = "successful operation"
             data["data"] = {
                 "dishID":dish.dishID,
                 "dishLikes":dish.dishLikes,
-                "dishStatus":dish.is_active
+                "dishStatus":dish.is_active,
+                "dishImages":successful_image
             }
         else:
             data["code"] = 400
@@ -825,7 +829,7 @@ def dish_detail(request,dishID):
                         image.delete()
                 except:
                     data["message"] = "Image url problem,"
-
+            successful_image = []
             if request.data["dishImages"]:
                 image_list = dict((request.data).lists())['dishImages']
                 for image in image_list:
@@ -835,9 +839,11 @@ def dish_detail(request,dishID):
                     }
                     imageserializer = DishImageSerializer(data=image_data)
                     if imageserializer.is_valid():
-                        imageserializer.save()
+                        dishimage = imageserializer.save()
+                        successful_image.append(BASE_URL+dishimage.dishImage.url)
             data["code"] = 200
             data["message"] = "successful operation"
+            data["data"] = {"dishImages":successful_image}
         else:
             data["code"] = 400
             data["message"] = "something wrong"
