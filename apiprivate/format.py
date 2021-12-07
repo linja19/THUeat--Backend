@@ -9,12 +9,10 @@ def format_stafflist(stafflist):
         data["staffName"] = staff.user.userName
         data["staffPhone"] = staff.user.userPhone
         data["staffStatus"] = staff.user.is_active
-        staffstall = {}
-        staffstall["stallID"] = staff.stallID.pk
-        staffstall["stallName"] = staff.stallID.stallName
-        staffstall["stallFloor"] = staff.stallID.stallFloor
-        staffstall["canteenName"] = staff.stallID.canteenID.canteenName
-        data["staffStall"] = staffstall
+        data["stallID"] = staff.stallID.pk
+        data["stallName"] = staff.stallID.stallName
+        data["stallFloor"] = staff.stallID.stallFloor
+        data["canteenName"] = staff.stallID.canteenID.canteenName
         data_list.append(data)
     return data_list
 
