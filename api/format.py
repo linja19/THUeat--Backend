@@ -66,7 +66,11 @@ def format_recommend_stall_list(stall_list):
         data["stallRate"] = stall.stallRate
         data["stallRateNumber"] = stall.stallRateNum
         image_list = StallImage.objects.filter(stallID=stall.pk)
-        data["stallImages"] = [BASE_URL + image.stallImage.url for image in image_list]
+        data["stallImages"] = ""
+        try:
+            data["stallImages"] = BASE_URL + image_list[0].stallImage.url
+        except:
+            pass
         data["stallName"] = stall.stallName
         data["canteenName"] = stall.canteenID.canteenName
         review_list = Review.objects.filter(stallID=stall.pk)
