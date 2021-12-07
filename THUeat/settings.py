@@ -49,7 +49,8 @@ AUTH_USER_MODEL = 'api.User'
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.TokenAuthentication',
-    ]
+    ],
+    'EXCEPTION_HANDLER': 'api.error_handler.custom_exception_handler',
 }
 
 MIDDLEWARE = [
