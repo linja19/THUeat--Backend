@@ -43,10 +43,29 @@ def check_dish_is_valid(dish_list):                     # check a dish is existe
             return False
     return count
 
+def data_is_incomplete(request,*args):
+    for param in args:
+        try:
+            request.data[param]
+        except:
+            data = {
+                "code":400,
+                "message":"Incomplete data"
+            }
+            return Response(data)
+    return False
+
+incomplete_info = {
+                "code":400,
+                "message":"Incomplete data"
+                }
+
 @api_view(['POST'])
 def user_register(request):
     if request.method=='POST':
         data = {}                                   # response data
+        if data_is_incomplete(request,"userName","password","userEmail","userPhone"):
+            return Response(incomplete_info)
         user_data = {                               # userName,password in User model
             "userName":request.data["userName"],
             "password":request.data["password"]
