@@ -13,6 +13,7 @@ from .format import *
 import re
 from django.core.mail import send_mail
 import threading
+from THUeat.settings import BASE_URL
 
 # Create your views here.
 
@@ -186,7 +187,7 @@ def user_details(request):
         data['data'] = {
             "userName": user.userName,
             "userEmail": student.userEmail,
-            "userImage": student.userImage.url,
+            "userImage": BASE_URL + student.userImage.url,
             "userPhone": user.userPhone
         }
         review_list = Review.objects.filter(userID=user.pk)         # find user review

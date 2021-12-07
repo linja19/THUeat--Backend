@@ -1,4 +1,5 @@
 from api.models import *
+from THUeat.settings import BASE_URL
 
 def format_stafflist(stafflist):
     data_list = []
@@ -35,7 +36,7 @@ def format_student_list(student_list):
         user = student.user
         data["userID"] = user.pk
         data["userName"] = user.userName
-        data["userImage"] = student.userImage.url
+        data["userImage"] = BASE_URL + student.userImage.url
         data["userEmail"] = student.userEmail
         data["userStatus"] = user.is_active
         data_list.append(data)
@@ -45,7 +46,7 @@ def format_student(student):
     data = {}
     user = student.user
     data["userName"] = user.userName
-    data["userImage"] = student.userImage.url
+    data["userImage"] = BASE_URL + student.userImage.url
     data["userEmail"] = student.userEmail
     data["userStatus"] = user.is_active
     return data
@@ -71,7 +72,7 @@ def format_notice_list(notice_list):
         data["noticeID"] = notice.pk
         data["noticeTitle"] = notice.noticeTitle
         data["noticeWords"] = notice.noticeWords
-        data["noticeImage"] = notice.noticeImage.url
+        data["noticeImage"] = BASE_URL + notice.noticeImage.url
         datalist.append(data)
     return datalist
 
@@ -143,12 +144,12 @@ def format_review_list(review_list):
     for review in review_list:
         data = {}
         data["userName"] = review.userID.userName
-        data["userImage"] = Student.objects.get(user=review.userID).userImage.url
+        data["userImage"] = BASE_URL + Student.objects.get(user=review.userID).userImage.url
         data["reviewID"] = review.reviewID
         data["reviewDateTime"] = review.reviewDateTime
         data["rate"] = review.rate
         data["reviewComment"] = review.reviewComment
-        data["reviewImages"] = [image.reviewImages.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
+        data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
         data["reviewTags"] = review.reviewTags
         data["reviewLikes"] = review.reviewLikes
         data["replyDateTime"] = ""
@@ -174,7 +175,7 @@ def format_mystall(stall):
     data["stallDescribe"] = stall.stallDescribe
     data["canteenName"] = canteen.canteenName
     data["stallStatus"] = stall.is_active
-    data["stallImages"] = [stallimage.stallImage.url for stallimage in StallImage.objects.filter(stallID=stall.stallID)]
+    data["stallImages"] = [BASE_URL + stallimage.stallImage.url for stallimage in StallImage.objects.filter(stallID=stall.stallID)]
     data["stallRate"] = stall.stallRate
     data["stallRateNumber"] = stall.stallRateNum
     data["canteenRate"] = calculate_canteen_rate(canteen)
@@ -200,7 +201,7 @@ def format_dish_list(dish_list):
         data["dishName"] = dish.dishName
         data["dishIntro"] = dish.dishDescribe
         data["dishPrice"] = dish.dishPrice
-        data["dishImage"] = dish.dishImage.url
+        data["dishImage"] = BASE_URL + dish.dishImage.url
         data["dishLikes"] = dish.dishLikes
         data["dishAvailableTime"] = dish.dishAvailableTime
         data["dishStatus"] = dish.is_active
@@ -212,7 +213,7 @@ def format_dish(dish):
     data["dishName"] = dish.dishName
     data["dishIntro"] = dish.dishDescribe
     data["dishPrice"] = dish.dishPrice
-    data["dishImage"] = dish.dishImage.url
+    data["dishImage"] = BASE_URL + dish.dishImage.url
     data["dishLikes"] = dish.dishLikes
     data["dishAvailableTime"] = dish.dishAvailableTime
     data["dishStatus"] = dish.is_active
@@ -226,12 +227,12 @@ def format_dishreview_list(dishreview_list):
         review = dishreview.reviewID
         data = {}
         data["userName"] = review.userID.userName
-        data["userImage"] = Student.objects.get(user=review.userID).userImage.url
+        data["userImage"] = BASE_URL + Student.objects.get(user=review.userID).userImage.url
         data["reviewID"] = review.reviewID
         data["reviewDateTime"] = review.reviewDateTime
         data["rate"] = review.rate
         data["reviewComment"] = review.reviewComment
-        data["reviewImages"] = [image.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
+        data["reviewImages"] = [BASE_URL + image.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
         data["reviewTags"] = review.reviewTags
         data["reviewLikes"] = review.reviewLikes
         data["replyDateTime"] = ""

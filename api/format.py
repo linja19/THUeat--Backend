@@ -1,4 +1,5 @@
 from .models import *
+from THUeat.settings import BASE_URL
 
 def format_navigations_canteen_list(canteen_list):
     datalist = []
@@ -25,7 +26,7 @@ def format_canteen(canteen):
     data["canteenPhone"] = canteen.canteenPhone
     data["canteenAddress"] = canteen.canteenAddress
     data["canteenIntro"] = canteen.canteenIntro
-    data["canteenImage"] = canteen.canteenImage.url
+    data["canteenImage"] = BASE_URL + canteen.canteenImage.url
     data["canteenType"] = canteen.canteenType
     data["canteenOperationTime"] = canteen.canteenOperationTime
     stall_list = Stall.objects.filter(canteenID=canteen.pk, is_active=True)
@@ -37,7 +38,7 @@ def format_canteen(canteen):
         stall_dic["stallRate"] = stall.stallRate
         stall_dic["stallRateNumber"] = stall.stallRateNum
         image_list = StallImage.objects.filter(stallID=stall.pk)
-        stall_dic["stallImages"] = [image.stallImage.url for image in image_list]
+        stall_dic["stallImages"] = [BASE_URL + image.stallImage.url for image in image_list]
         stall_dic["stallName"] = stall.stallName
         review_list = Review.objects.filter(stallID=stall.pk)
         reviews = []
@@ -65,7 +66,7 @@ def format_recommend_stall_list(stall_list):
         data["stallRate"] = stall.stallRate
         data["stallRateNumber"] = stall.stallRateNum
         image_list = StallImage.objects.filter(stallID=stall.pk)
-        data["stallImages"] = [image.stallImage.url for image in image_list]
+        data["stallImages"] = [BASE_URL + image.stallImage.url for image in image_list]
         data["stallName"] = stall.stallName
         data["canteenName"] = stall.canteenID.canteenName
         review_list = Review.objects.filter(stallID=stall.pk)
@@ -89,7 +90,7 @@ def format_stall_dish(dish,user,login):
     data = {}
     data["dishID"] = dish.dishID
     data["dishName"] = dish.dishName
-    data["dishImage"] = dish.dishImage.url
+    data["dishImage"] = BASE_URL + dish.dishImage.url
     data["dishPrice"] = dish.dishPrice
     data["dishLikes"] = dish.dishLikes
     if login:
@@ -120,11 +121,11 @@ def format_stall_dish(dish,user,login):
 def format_stall_review(review,user,login):
     data = {}
     data["userName"] = review.userID.userName
-    data["userImage"] = Student.objects.get(user=review.userID.pk).userImage.url
+    data["userImage"] = BASE_URL + Student.objects.get(user=review.userID.pk).userImage.url
     data["reviewID"] = review.reviewID
     data["reviewDateTime"] = review.reviewDateTime
     data["rate"] = review.rate
-    data["reviewImages"] = [reviewimage.reviewImages.url for reviewimage in ReviewImage.objects.filter(reviewID=review.pk)]
+    data["reviewImages"] = [BASE_URL + reviewimage.reviewImages.url for reviewimage in ReviewImage.objects.filter(reviewID=review.pk)]
     data["reviewComment"] = review.reviewComment
     data["reviewTags"] = review.reviewTags
     data["reviewLikes"] = review.reviewLikes
@@ -158,7 +159,7 @@ def format_stall(stall, user, login):
     data["stallFloor"] = stall.stallFloor
     data["stallDescribe"] = stall.stallDescribe
     image_list = StallImage.objects.filter(stallID=stall.pk)
-    data["stallImages"] = [image.stallImage.url for image in image_list]
+    data["stallImages"] = [BASE_URL + image.stallImage.url for image in image_list]
     data["stallRate"] = stall.stallRate
     data["stallRateNumber"] = stall.stallRateNum
     data["stallOperationtime"] = stall.stallOperationtime
@@ -184,7 +185,7 @@ def format_review(review):
     data["reviewID"] = review.reviewID
     data["reviewDateTime"] = review.reviewDateTime
     data["reviewComment"] = review.reviewComment
-    data["reviewImages"] = [image.reviewImages.url for image in image_list]
+    data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in image_list]
     data["reviewTags"] = review.reviewTags
     data["reviewLikes"] = review.reviewLikes
     data["reply"] = review.reply
@@ -209,7 +210,7 @@ def format_myreview(review):
     data["reviewDateTime"] = review.reviewDateTime
     data["rate"] = review.rate
     data["reviewComment"] = review.reviewComment
-    data["reviewImages"] = [image.reviewImages.url for image in image_list]
+    data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in image_list]
     data["reviewTags"] = review.reviewTags
     data["reviewLikes"] = review.reviewLikes
     data["reply"] = review.reply
@@ -236,7 +237,7 @@ def format_dish(dish,user,login):
     data["dishName"] = dish.dishName
     data["dishIntro"] = dish.dishDescribe
     data["dishPrice"] = dish.dishPrice
-    data["dishImage"] = dish.dishImage.url
+    data["dishImage"] = BASE_URL + dish.dishImage.url
     data["dishLikes"] = dish.dishLikes
     data["dishAvailableTime"] = dish.dishAvailableTime
     if login:
@@ -256,11 +257,11 @@ def format_dish(dish,user,login):
 def format_dish_review(dishreview,user,login):
     data = {}
     data["userName"] = dishreview.reviewID.userID.userName
-    data["userImage"] = Student.objects.get(user=dishreview.reviewID.userID.pk).userImage.url
+    data["userImage"] = BASE_URL + Student.objects.get(user=dishreview.reviewID.userID.pk).userImage.url
     data["reviewID"] = dishreview.reviewID.pk
     data["reviewDateTime"] = dishreview.reviewID.reviewDateTime
     data["rate"] = dishreview.reviewID.rate
-    data["reviewImages"] = [reviewimage.reviewImages.url for reviewimage in ReviewImage.objects.filter(reviewID=dishreview.reviewID.pk)]
+    data["reviewImages"] = [BASE_URL + reviewimage.reviewImages.url for reviewimage in ReviewImage.objects.filter(reviewID=dishreview.reviewID.pk)]
     data["reviewComment"] = dishreview.reviewID.reviewComment
     data["reviewTags"] = dishreview.reviewID.reviewTags
     data["reviewLikes"] = dishreview.reviewID.reviewLikes
@@ -286,7 +287,7 @@ def format_recommend_dish(dish,user,login):
     data["dishName"] = dish.dishName
     # data["dishIntro"] = dish.dishDescribe
     data["dishPrice"] = dish.dishPrice
-    data["dishImage"] = dish.dishImage.url
+    data["dishImage"] = BASE_URL + dish.dishImage.url
     data["dishLikes"] = dish.dishLikes
     data["dishAvailableTime"] = dish.dishAvailableTime
     if login:
@@ -323,6 +324,6 @@ def format_notice_list(notice_list):
         data = {}
         data["noticeTitle"] = notice.noticeTitle
         data["noticeWords"] = notice.noticeWords
-        data["noticeImage"] = notice.noticeImage.url
+        data["noticeImage"] = BASE_URL + notice.noticeImage.url
         datalist.append(data)
     return datalist
