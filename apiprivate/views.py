@@ -612,16 +612,21 @@ def mystall(request):
         mystallserializer = MystallSerializer(stall,data=request_data)
         if mystallserializer.is_valid():
             mystallserializer.save()
+            if request.data["deleteImages"]:
+                try:
+                    delete_list = dict((request.data).lists())['deleteImages']
+                    for imageURL in delete_list:
+                        url = re.search(".*images/(.*)", imageURL).group(1)
+                        image = StallImage.objects.get(stallImage=url)
+                        image.stallImage.delete(save=True)
+                        image.delete()
+                except:
+                    data["message"] = "Image url problem,"
+
             if request.data["stallImages"]:
                 image_list = dict((request.data).lists())['stallImages']
                 if image_list:
-                    try:
-                        current_image_list = StallImage.objects.filter(stallID=stall.stallID)
-                        for current_image in current_image_list:
-                            current_image.stallImage.delete(save=True)
-                            current_image.delete()
-                    except:
-                        pass
+
                     for image in image_list:
                         request_data = {
                             "stallID": stall.stallID,
@@ -636,7 +641,7 @@ def mystall(request):
             else:
                 pass
             data["code"] = 200
-            data["message"] = "successful operation"
+            data["message"] += "successful operation"
         else:
             data["code"] = 400
             data["message"] = "something wrong"
