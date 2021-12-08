@@ -234,7 +234,7 @@ def format_dishreview_list(dishreview_list):
         data["reviewDateTime"] = review.reviewDateTime
         data["rate"] = review.rate
         data["reviewComment"] = review.reviewComment
-        data["reviewImages"] = [BASE_URL + image.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
+        data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
         data["reviewTags"] = review.reviewTags
         data["reviewLikes"] = review.reviewLikes
         data["replyDateTime"] = ""
