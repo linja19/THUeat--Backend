@@ -26,6 +26,8 @@ class StudentRegisterSerializer(serializers.ModelSerializer):
     def save(self):                                 # overwrite save function
         user = self.validated_data["user"]
         verification_number = str(random.randint(0,999999))
+        while len(verification_number)!=6:
+            verification_number = str(random.randint(0, 999999))
         student = Student(user=user,userEmail=self.validated_data['userEmail'],verificationNumber=verification_number) # create Student object
         student.save()
         return student
