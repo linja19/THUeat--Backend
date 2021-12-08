@@ -21,12 +21,15 @@ def login(request):
             if user.is_superuser:
                 type = "superadmin"
                 first_login = False
+                validname = 'superadmin'
             elif user.is_admin:
                 type = "admin"
                 first_login = Admin.objects.get(user=user.pk).first_login
+                validname = Admin.objects.get(user=user.pk).adminName
             elif user.is_staff:
                 type = "staff"
                 first_login = Staff.objects.get(user=user.pk).first_login
+                validname = Staff.objects.get(user=user.pk).staffName
             else:
                 data["code"] = 404
                 data["message"] = "public user"
@@ -39,7 +42,8 @@ def login(request):
                     "token": Token.objects.get(user_id=user.id).key,
                     "firstLogin": first_login,
                     "type": type,
-                    "validName": user.userName,
+                    "name": user.userName,
+                    "validName": validname
                 }
             else:
                 data["code"] = 400
