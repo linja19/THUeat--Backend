@@ -579,6 +579,7 @@ def stalls(request):
             "stallName":request.data["stallName"],
             "stallFloor": request.data["stallFloor"],
             "canteenID": request.data["canteenID"],
+            "stallOperationtime": "C-6:30-6:30"
         }
         stallserializer = CreateStallSerializer(data=request_data)
         if stallserializer.is_valid():
@@ -630,11 +631,19 @@ def mystall(request):
         user = get_user_by_request_token(request)
         staff = Staff.objects.get(user=user.pk)
         stall = Stall.objects.get(stallID=staff.stallID.pk)
+        canteen = stall.canteenID
+        try:
+            operation_time,start,end = operation_time_encode(request.data["stallOperationtime"])
+        except:
+            data["code"] = 400
+            data["message"] = "营业时间有误"
+            return Response(data)
+
         request_data = {
             "stallName":request.data["stallName"],
             "stallFloor":request.data["stallFloor"],
             "stallDescribe":request.data["stallDescribe"],
-            "stallOperationtime":request.data["stallOperationtime"]
+            "stallOperationtime":operation_time
         }
         mystallserializer = MystallSerializer(stall,data=request_data)
         if mystallserializer.is_valid():
@@ -666,6 +675,7 @@ def mystall(request):
                             data = serializers.errors
             else:
                 pass
+            update_canteen_operation_time(canteen,start,end)
             data["code"] = 200
             data["message"] += "successful operation"
             data["data"] = {"stallImages":successful_image}
@@ -673,6 +683,22 @@ def mystall(request):
             data["code"] = 400
             data["message"] = "something wrong"
     return Response(data)
+
+def update_canteen_operation_time(canteen,start,end):
+    canteen_time = canteen.canteenOperationTime
+    current_start = canteen_time.split('-')[0].replace(':','')
+    current_end = canteen_time.split('-')[1].replace(':','')
+    if int(start) > int(current_start):
+        start = current_start
+    if int(end) < int(current_end):
+        end = current_end
+    start = str(start)
+    end = str(end)
+    start = start[:len(start) - 2] + ":" + start[len(start) - 2:]
+    end = end[:len(end) - 2] + ":" + end[len(end) - 2:]
+    time = start + '-' + end
+    canteen.canteenOperationTime = time
+    canteen.save()
 
 @api_view(['GET'])
 @authentication_classes([TokenAuthentication])
@@ -762,11 +788,13 @@ def dish(request):
             data["code"] = 404
             data["message"] = "staff not exists"
             return Response(data)
+        dishTime = dict((request.data).lists())['dishAvailableTime']
+        dishAvailableTime = dish_available_time_encode(dishTime)
         request_data = {
             "dishName": request.data["dishName"],
             "dishDescribe": request.data["dishIntro"],
             "dishPrice": request.data["dishPrice"],
-            "dishAvailableTime": request.data["dishAvailableTime"],
+            "dishAvailableTime": dishAvailableTime,
             "stallID":staff.stallID.pk
         }
         serializers = CreateDishSerializer(data=request_data)
@@ -811,11 +839,13 @@ def dish_detail(request,dishID):
             data["message"] = "staff not exists"
             return Response(data)
         dish = Dish.objects.get(dishID=dishID)
+        dishTime = dict((request.data).lists())['dishAvailableTime']
+        dishAvailableTime = dish_available_time_encode(dishTime)
         request_data = {
             "dishName": request.data["dishName"],
             "dishDescribe": request.data["dishIntro"],
             "dishPrice": request.data["dishPrice"],
-            "dishAvailableTime": request.data["dishAvailableTime"],
+            "dishAvailableTime": dishAvailableTime,
             "is_active": request.data["dishStatus"],
             "stallID": staff.stallID.pk
         }
