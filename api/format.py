@@ -157,6 +157,38 @@ def format_stall_review(review,user,login):
     data["dishes"] = dishes    
     return data    
 
+def operation_time_decode(time):
+    session = time.split('/')
+    operation_time_list = []
+    for each in session:
+        if "B" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = "早餐" + start_time + "-" + end_time
+            operation_time_list.append(session_data)
+        elif "L" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = "午餐" + start_time + "-" + end_time
+            operation_time_list.append(session_data)
+        elif "D" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = "晚餐" + start_time + "-" + end_time
+            operation_time_list.append(session_data)
+        elif "S" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = "宵夜" + start_time + "-" + end_time
+            operation_time_list.append(session_data)
+        elif "C" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = "自定义" + start_time + "-" + end_time
+            operation_time_list = [session_data]
+            break
+    operation_time = ",".join(operation_time_list)
+    return operation_time
 
 def format_stall(stall, user, login):
     data = {}
@@ -167,7 +199,7 @@ def format_stall(stall, user, login):
     data["stallImages"] = [BASE_URL + image.stallImage.url for image in image_list]
     data["stallRate"] = stall.stallRate
     data["stallRateNumber"] = stall.stallRateNum
-    data["stallOperationtime"] = stall.stallOperationtime
+    data["stallOperationtime"] = operation_time_decode(stall.stallOperationtime)
     dishes = []
     dish_list = Dish.objects.filter(stallID=stall.pk, is_active=True)  # find dishes
     for dish in dish_list:
