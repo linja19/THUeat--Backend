@@ -58,7 +58,7 @@ def data_is_incomplete(request,*args):
 
 incomplete_info = {
                 "code":400,
-                "message":"Incomplete data"
+                "message":"数据不完整"
                 }
 
 @api_view(['POST'])
@@ -96,14 +96,14 @@ def user_register(request):
                 data['message'] = 'successful operation'
             else:
                 data['code'] = 400
-                data['message'] = "user with this userEmail already exists."    # error userEmail exists
+                data['message'] = "此邮箱已被使用"    # error userEmail exists
         else:
             data['code'] = 400
-            messages = []
+            messages = ""
             if User.objects.filter(userName=request.data["userName"]).exists(): # error userName exists
-                messages.append("用户名已存在")
+                messages += "用户名已存在"
             if Student.objects.filter(userEmail=request.data["userEmail"]).exists():    # error userEmail exist
-                messages.append("用户邮箱已存在")
+                messages += "用户邮箱已存在"
             data['message'] = messages
         return Response(data)
 
@@ -111,12 +111,14 @@ def user_register(request):
 def user_verification(request):
     data = {}
     if request.method=='POST':
+        if data_is_incomplete(request,"userName","verificationNumber"):
+            return Response(incomplete_info)
         try:
             user = User.objects.get(userName=request.data["userName"])
             number = request.data["verificationNumber"]
             if number == '0':
                 data["code"] = 400
-                data["message"] = "wrong verification number"
+                data["message"] = "验证码错误"
                 return Response(data)
             student = Student.objects.get(user=user.pk)
             verification = student.verificationNumber
@@ -126,24 +128,26 @@ def user_verification(request):
                 student.verificationNumber = 0
                 student.save()
                 data["code"] = 200
-                data["messages"] = "successful operation"
+                data["message"] = "successful operation"
                 token = Token.objects.get(user=user).key  # find user in Token model and get its token
                 data['data'] = {
                     "token": token,
                 }
             else:
                 data["code"] = 400
-                data["message"] = "wrong verification number"
+                data["message"] = "验证码错误"
                 return Response(data)
         except:
             data["code"] = 404
-            data["message"] = 'user not found'
+            data["message"] = '用户不存在'
     return Response(data)
 
 @api_view(['POST'])
 def user_login(request):
     data = {}
     if request.method=='POST':
+        if data_is_incomplete(request,"userName","password"):
+            return Response(incomplete_info)
         userName = request.data['userName']                     # get userName
         password = request.data['password']                     # get password
         try:
@@ -191,6 +195,8 @@ def user_details(request):
 
         return Response(data)
     elif request.method=='POST':                                    # update user details
+        if data_is_incomplete(request,"userName","userPhone"):
+            return Response(incomplete_info)
         user = get_user_by_request_token(request)                   # get user by token
         student = get_student_by_user(user)                         # get student
         user_data = {
@@ -218,11 +224,11 @@ def user_details(request):
             data['message'] = 'successful operation'
         else:
             data['code'] = 400
-            messages = []
-            for key, value in userserializer.errors.items():    # get error from serializer
-                messages.append(value[0])
-            for key, value in studentserializer.errors.items():
-                messages.append(value[0])
+            messages = ""
+            if User.objects.filter(userName=request.data["userName"]).exclude(userName=user.userName).exists():  # error userName exists
+                messages += "用户名已存在"
+            if Student.objects.filter(userEmail=request.data["userEmail"]).exclude(userEmail=student.userEmail).exists():  # error userEmail exist
+                messages += "用户邮箱已存在"
             data['message'] = messages
         return Response(data)
 
@@ -232,6 +238,8 @@ def user_details(request):
 def user_password(request):
     data = {}
     user = get_user_by_request_token(request)               # get user by token
+    if data_is_incomplete(request, "password"):
+        return Response(incomplete_info)
     user_data = {
         "password": request.data["password"]
     }
@@ -278,7 +286,7 @@ def canteens(request,canteenID):
             data["data"] = format_canteen(canteen)
         except:
             data["code"] = 404
-            data["message"] = "canteen not found"
+            data["message"] = "食堂不存在"
     return Response(data)
 
 @api_view(["GET"])
@@ -329,10 +337,10 @@ def stalls(request, stallID):
                 data["data"] = format_stall(stall, user, login)
             else:
                 data["code"] = 400
-                data["message"] = "stall inactive"
+                data["message"] = "档口未激活"
         except:
             data["code"] = 404
-            data["message"] = "stall not found"            
+            data["message"] = "档口不存在"
     return Response(data)
 
 @api_view(["POST","GET","DELETE"])
@@ -342,11 +350,13 @@ def reviews(request):
     data = {}
     user = get_user_by_request_token(request)               # get user by token
     if request.method=='POST':
+        if data_is_incomplete(request,"reviewComment","reviewTags","rate","stallID"):
+            return Response(incomplete_info)
         try:                                                # find stallID in url
             stallID = request.query_params["stallID"]
         except:
             data["code"] = 404
-            data["messages"] = "stallID not found"
+            data["message"] = "档口不存在"
             return Response(data)
         review_data = {
             "reviewComment":request.data["reviewComment"],
@@ -371,8 +381,6 @@ def reviews(request):
                     imageserializer = CreateReviewImagesSerializer(data=reviewimages_data)
                     if imageserializer.is_valid():
                         imageserializer.save()
-                    else:
-                        data = imageserializer.errors
             dish_list = dict((request.data).lists())['dishID']
             if request.data["dishID"]:
                 for each in dish_list:                         # for each dish,create serializer and save
@@ -384,29 +392,29 @@ def reviews(request):
                     if serializer.is_valid():
                         serializer.save()
             data["code"] = 200
-            data["messages"] = 'successful operation'
+            data["message"] = 'successful operation'
         else:
             data["code"] = 404
-            data["messages"] = 'dish not exists'
+            data["message"] = '菜品不存在'
     elif request.method=='GET':
         try:                                                # find stallID in url
             stallID = request.query_params["stallID"]
         except:
             data["code"] = 404
-            data["messages"] = "stallID not found"
+            data["message"] = "档口不存在"
             return Response(data)
 
         review_list = Review.objects.filter(userID=user.pk, stallID=stallID)  # find reviews
         if review_list:
             data["code"] = 200
-            data["messages"] = "successful operation"
+            data["message"] = "successful operation"
             response_data = []
             for review in review_list:
                 response_data.append(format_review(review))  # add review to response data
             data["data"] = response_data
         else:
             data["code"] = 404
-            data["messages"] = "review not found"
+            data["message"] = "评价不存在"
 
     return Response(data)
 
@@ -422,13 +430,13 @@ def deletereviews(request,reviewID):
             if review.userID.pk == user.pk:
                 review.delete()
                 data["code"] = 200
-                data["messages"] = "successful operation"
+                data["message"] = "successful operation"
             else:
                 data["code"] = 400
-                data["messages"] = "no permission"
+                data["message"] = "没有权限"
         except Review.DoesNotExist:
             data["code"] = 404
-            data["messages"] = "review not exist"
+            data["message"] = "评价不存在"
     return Response(data)
 
 @api_view(["POST","DELETE"])
@@ -444,7 +452,7 @@ def reviewslike(request,reviewID):
     if request.method=="POST":
         if LikeReview.objects.filter(userID=user.pk,reviewID=reviewID).exists():
             data["code"] = 400
-            data["messages"] = "User already like this review"
+            data["message"] = "用户已点赞此评价"
         else:
             serializer = LikeReviewSerializer(data=request_data)
             if serializer.is_valid():
@@ -456,10 +464,10 @@ def reviewslike(request,reviewID):
                     review.reviewLikes = 1
                 review.save()
                 data["code"] = 200
-                data["messages"] = "successful operation"
+                data["message"] = "successful operation"
             else:
                 data["code"] = 404
-                data["messages"] = "review not found"
+                data["message"] = "评价不存在"
     elif request.method=="DELETE":
         likereview = LikeReview.objects.filter(userID=user.pk, reviewID=reviewID)
         if likereview:
@@ -468,10 +476,10 @@ def reviewslike(request,reviewID):
             review.reviewLikes -= 1
             review.save()
             data["code"] = 200
-            data["messages"] = "successful operation"
+            data["message"] = "successful operation"
         else:
             data["code"] = 404
-            data["messages"] = "user hasn't like this review"
+            data["message"] = "用户还未点赞此评价"
     return Response(data)
 
 @api_view(["POST","DELETE","GET"])
@@ -484,11 +492,11 @@ def dishes(request,dishID):
             user = get_user_by_request_token(request)  # get user by token
         except:
             data["code"] = 400
-            data["messages"] = "Token not provided"
+            data["message"] = "口令有误"
             return Response(data)
         if not user.is_active:
             data["code"] = 400
-            data["messages"] = "User inactivated"
+            data["message"] = "用户未激活"
             return Response(data)
         request_data = {
             "userID": user.pk,
@@ -496,7 +504,7 @@ def dishes(request,dishID):
         }
         if LikeDish.objects.filter(userID=user.pk,dishID=dishID).exists():
             data["code"] = 400
-            data["messages"] = "user already like this dish"
+            data["message"] = "用户已点赞此菜品"
         else:
             serializer = LikeDishSerializer(data=request_data)
             if serializer.is_valid():
@@ -508,7 +516,7 @@ def dishes(request,dishID):
                     dish.dishLikes = 1
                 dish.save()
                 data["code"] = 200
-                data["messages"] = "successful operation"
+                data["message"] = "successful operation"
             else:
                 data = serializer.errors
     elif request.method=="DELETE":
@@ -516,7 +524,7 @@ def dishes(request,dishID):
             user = get_user_by_request_token(request)  # get user by token
         except:
             data["code"] = 400
-            data["messages"] = "Token not provided"
+            data["message"] = "口令有误"
             return Response(data)
         likedish = LikeDish.objects.filter(userID=user.pk,dishID=dishID)
         if likedish:
@@ -525,10 +533,10 @@ def dishes(request,dishID):
             dish.dishLikes -= 1
             dish.save()
             data["code"] = 200
-            data["messages"] = "successful operation"
+            data["message"] = "successful operation"
         else:
             data["code"] = 404
-            data["messages"] = "user hasn't like this dish"
+            data["message"] = "用户还未点赞此菜品"
     elif request.method=="GET":
         try:
             user = get_user_by_request_token(request)  # get user by token
@@ -541,14 +549,14 @@ def dishes(request,dishID):
             dish = Dish.objects.get(dishID=dishID)
             if dish.is_active:
                 data["code"] = 200
-                data["messages"] = "successful operation"
+                data["message"] = "successful operation"
                 data["data"] = format_dish(dish, user, login)
             else:
                 data["code"] = 400
-                data["messages"] = "dish inactive"
+                data["message"] = "菜品未激活"
         except:
             data["code"] = 404
-            data["messages"] = "dish not found"
+            data["message"] = "菜品不存在"
     return Response(data)
 
 @api_view(["GET"])
