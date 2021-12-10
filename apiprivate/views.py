@@ -10,10 +10,29 @@ from .format import *
 from django.core.mail import send_mail
 import threading
 
+def data_is_incomplete(request,*args):
+    for param in args:
+        try:
+            request.data[param]
+        except:
+            data = {
+                "code":400,
+                "message":"Incomplete data"
+            }
+            return Response(data)
+    return False
+
+incomplete_info = {
+                "code":400,
+                "message":"数据不完整"
+                }
+
 @api_view(['POST'])
 def login(request):
     data = {}
     if request.method=='POST':
+        if data_is_incomplete(request,"name","password"):
+            return Response(incomplete_info)
         userName = request.data["name"]
         password = request.data["password"]
         try:
@@ -32,7 +51,7 @@ def login(request):
                 validname = Staff.objects.get(user=user.pk).staffName
             else:
                 data["code"] = 404
-                data["message"] = "public user"
+                data["message"] = "公共页面用户"
                 return Response(data)
             if user.check_password(password):
                 user.save()
@@ -47,10 +66,10 @@ def login(request):
                 }
             else:
                 data["code"] = 400
-                data["message"] = "wrong password"
+                data["message"] = "密码错误"
         except:
             data["code"] = 404
-            data["message"] = "user not found"
+            data["message"] = "用户不存在"
 
     return Response(data)
 
@@ -101,6 +120,8 @@ def check_stallID_is_valid(stallID):
 def createstaff(request):
     data = {}
     if request.method=='POST':
+        if data_is_incomplete(request,"staffName","staffPhone","stallID"):
+            return Response(incomplete_info)
         username = get_random_username()
         password = get_random_password()
         while User.objects.filter(userName=username).exists():
@@ -150,11 +171,11 @@ def createstaff(request):
                 }
         else:
             data["code"] = 400
-            message = []
+            message = ""
             if User.objects.filter(userName=request.data["staffName"]).exists():
-                message.append("用户名已存在")
+                message += "用户名已存在"
             if not Stall.objects.filter(stallID=request.data["stallID"]).exists():
-                message.append("stallID不存在")
+                message += "stallID不存在"
             data["message"] = message
     elif request.method=="GET":
         try:
@@ -187,12 +208,14 @@ def createstaff(request):
 def staffstatus(request,staffID):
     data = {}
     if request.method=="POST":
+        if data_is_incomplete(request,"staffStatus"):
+            return Response(incomplete_info)
         try:
             staff = Staff.objects.get(staffID=int(staffID))
             user = User.objects.get(id=staff.user.pk)
             if user.is_admin == True or user.is_superuser == True:
                 data["code"] = 400
-                data["message"] = "no permission"
+                data["message"] = "没有权限"
                 return Response(data)
             if request.data["staffStatus"] == "False" or request.data["staffStatus"] == False:
                 status = False
@@ -208,7 +231,7 @@ def staffstatus(request,staffID):
             data["message"] = "successful operation"
         except:
             data["code"] = 404
-            data["message"] = "user not exist"
+            data["message"] = "用户不存在"
     return Response(data)
 
 @api_view(['POST','GET'])
@@ -217,6 +240,8 @@ def staffstatus(request,staffID):
 def createadmin(request):
     data = {}
     if request.method == 'POST':
+        if data_is_incomplete(request,"adminValidName","adminPhone"):
+            return Response(incomplete_info)
         password = get_random_password()
         username = get_random_username()
         while User.objects.filter(userName=username).exists():
@@ -279,12 +304,14 @@ def createadmin(request):
 def adminstatus(request,adminID):
     data = {}
     if request.method=="POST":
+        if data_is_incomplete(request,"adminStatus"):
+            return Response(incomplete_info)
         try:
             admin = Admin.objects.get(adminID=int(adminID))
             user = User.objects.get(id=admin.user.pk)
             if user.is_superuser:
                 data["code"] = 400
-                data["message"] = "Superadmin cannot be inactivated"
+                data["message"] = "超级管理员的状态不能被更改"
                 return Response(data)
             if request.data["adminStatus"] == "False" or request.data["adminStatus"] == False:
                 status = False
@@ -300,7 +327,7 @@ def adminstatus(request,adminID):
             data["message"] = "successful operation"
         except:
             data["code"] = 404
-            data["message"] = 'user not exists'
+            data["message"] = '用户不存在'
     return Response(data)
 
 @api_view(['GET'])
@@ -332,13 +359,15 @@ def userdetails(request,userID):
             data["data"] = format_student(student)
         except:
             data["code"] = 404
-            data["message"] = "user not found"
+            data["message"] = "用户不存在"
     elif request.method=="POST":
+        if data_is_incomplete(request,"userStatus"):
+            return Response(incomplete_info)
         try:
             user = User.objects.get(id=int(userID))
             if user.is_admin==True or user.is_superuser==True:
                 data["code"] = 400
-                data["message"] = "no permission"
+                data["message"] = "没有权限"
                 return Response(data)
             if request.data["userStatus"] == "False" or request.data["userStatus"]==False:
                 status = False
@@ -354,7 +383,7 @@ def userdetails(request,userID):
             data["message"] = "successful operation"
         except:
             data["code"] = 404
-            data["message"] = "user not exist"
+            data["message"] = "用户不存在"
     return Response(data)
 
 import re
@@ -371,11 +400,13 @@ def get_user_by_request_token(request):
 def selfdetails(request):
     data = {}
     if request.method=='POST':
+        if data_is_incomplete(request,"token","name"):
+            return Response(incomplete_info)
         try:
             user = Token.objects.get(key=request.data["token"]).user
         except:
             data["code"] = 400
-            data["message"] = "token not provided"
+            data["message"] = "口令有误"
             return Response(data)
 
         if request.data["phone"]=="":
@@ -396,7 +427,7 @@ def selfdetails(request):
                     data["message"] = "successful operation"
                 else:
                     data["code"] = 400
-                    data["message"] = "username exists"
+                    data["message"] = "用户名已存在"
             elif user.is_staff:
                 serializers = UpdateAdminDetailsSerializer(user, data=user_data)
                 if serializers.is_valid():
@@ -406,7 +437,7 @@ def selfdetails(request):
                     data["message"] = "successful operation"
                 else:
                     data["code"] = 200
-                    data["message"] = "something wrong"
+                    data["message"] = "发生了一些错误"
             pass
         else:
             user_data["password"] = request.data["password"]
@@ -427,9 +458,9 @@ def selfdetails(request):
                 else:
                     data["code"] = 400
                     if user.check_password(request.data["oldPassword"]):
-                        data["message"] = "wrong password"
+                        data["message"] = "密码错误"
                     else:
-                        data["message"] = "username exists"
+                        data["message"] = "用户名已存在"
             elif user.is_staff:
                 serializers = UpdateAdminSerializer(user, data=user_data)
                 if serializers.is_valid() and user.check_password(request.data["oldPassword"]):
@@ -446,7 +477,7 @@ def selfdetails(request):
                         data["message"] = "successful operation"
                 else:
                     data["code"] = 200
-                    data["message"] = "wrong password"
+                    data["message"] = "密码错误"
     elif request.method=="GET":
         try:
             user = get_user_by_request_token(request)
@@ -461,7 +492,7 @@ def selfdetails(request):
                 type = "staff"
             else:
                 data["code"] = 400
-                data["message"] = "public user"
+                data["message"] = "公共页面用户"
                 return Response(data)
             data["code"] = 200
             data["message"] = "successful operation"
@@ -498,6 +529,8 @@ def notice(request):
         data["message"] = "successful operation"
         data["data"] = format_notice_list(notice_list)
     elif request.method=="POST":
+        if data_is_incomplete(request,"noticeImage","noticeTitle","noticeWords"):
+            return Response(incomplete_info)
         request_data = {
             "noticeImage":request.data["noticeImage"],
             "noticeTitle": request.data["noticeTitle"],
@@ -510,7 +543,7 @@ def notice(request):
             data["message"] = "successful operation"
         else:
             data["code"] = 400
-            data["message"] = "something wrong"
+            data["message"] = "发生了一些错误"
     return Response(data)
 
 @api_view(['DELETE'])
@@ -527,7 +560,7 @@ def delete_notice(request,noticeID):
             data["message"] = "successful operation"
         except:
             data["code"] = 404
-            data["message"] = "noticeID not found"
+            data["message"] = "公告不存在"
     return Response(data)
 
 @api_view(['GET'])
@@ -575,6 +608,8 @@ def stalls(request):
             pass
         data["data"] = format_stall_list(stall_list)
     elif request.method == 'POST':
+        if data_is_incomplete(request,"stallName","stallFloor","canteenID"):
+            return Response(incomplete_info)
         request_data = {
             "stallName":request.data["stallName"],
             "stallFloor": request.data["stallFloor"],
@@ -588,7 +623,7 @@ def stalls(request):
             data["message"] = "successful operation"
         else:
             data["code"] = 400
-            data["message"] = "canteenID not exists"
+            data["message"] = "食堂不存在"
     return Response(data)
 
 @api_view(['POST'])
@@ -597,6 +632,8 @@ def stalls(request):
 def stalls_status(request,stallID):
     data = {}
     if request.method=="POST":
+        if data_is_incomplete(request,"stallStatus"):
+            return Response(incomplete_info)
         try:
             stall = Stall.objects.get(stallID=stallID)
             if request.data["stallStatus"] == True:
@@ -611,7 +648,7 @@ def stalls_status(request,stallID):
                 data["message"] = "successful operation"
         except:
             data["code"] = 400
-            data["message"] = "stallID not exists"
+            data["message"] = "档口不存在"
     return Response(data)
 
 @api_view(['GET','POST'])
@@ -628,6 +665,8 @@ def mystall(request):
         data["message"] = "successful operation"
         data["data"] = format_mystall(stall)
     elif request.method=="POST":
+        if data_is_incomplete(request,"stallOperationtime","stallName","stallFloor","stallDescribe"):
+            return Response(incomplete_info)
         user = get_user_by_request_token(request)
         staff = Staff.objects.get(user=user.pk)
         stall = Stall.objects.get(stallID=staff.stallID.pk)
@@ -681,7 +720,7 @@ def mystall(request):
             data["data"] = {"stallImages":successful_image}
         else:
             data["code"] = 400
-            data["message"] = "something wrong"
+            data["message"] = "发生了一些错误"
     return Response(data)
 
 def update_canteen_operation_time(canteen,start,end):
@@ -720,7 +759,7 @@ def mystall_review(request):
             data["data"] = format_review_list(review_list)
         except:
             data["code"] = 404
-            data["message"] = "staff not exists"
+            data["message"] = "档主不存在"
     return Response(data)
 
 @api_view(['POST'])
@@ -729,22 +768,24 @@ def mystall_review(request):
 def create_reply(request,reviewID):
     data = {}
     if request.method=='POST':
+        if data_is_incomplete(request,"replyComment"):
+            return Response(incomplete_info)
         user = get_user_by_request_token(request)
         try:
             staff = Staff.objects.get(user=user.pk)
         except:
             data["code"] = 404
-            data["message"] = "staff not exists"
+            data["message"] = "档主不存在"
             return Response(data)
         try:
             review = Review.objects.get(reviewID=reviewID)
         except:
             data["code"] = 404
-            data["message"] = "review not exists"
+            data["message"] = "评价不存在"
             return Response(data)
         if not review.stallID.pk==staff.stallID.pk:
             data["code"] = 403
-            data["message"] = "no permission"
+            data["message"] = "没有权限"
             return Response(data)
         request_data = {
             "parent_reviewID":reviewID,
@@ -760,7 +801,7 @@ def create_reply(request,reviewID):
             data["message"] = "successful operation"
         else:
             data["code"] = 400
-            data["message"] = "this review has been replied"
+            data["message"] = "此评论已被回复"
     return Response(data)
 
 @api_view(['GET','POST'])
@@ -774,19 +815,21 @@ def dish(request):
             staff = Staff.objects.get(user=user.pk)
         except:
             data["code"] = 404
-            data["message"] = "staff not exists"
+            data["message"] = "档主不存在"
             return Response(data)
         dish_list = Dish.objects.filter(stallID=staff.stallID)
         data["code"] = 200
         data["message"] = "successful operation"
         data["data"] = format_dish_list(dish_list)
     elif request.method=="POST":
+        if data_is_incomplete(request,"dishAvailableTime","dishName","dishIntro","dishPrice"):
+            return Response(incomplete_info)
         user = get_user_by_request_token(request)
         try:
             staff = Staff.objects.get(user=user.pk)
         except:
             data["code"] = 404
-            data["message"] = "staff not exists"
+            data["message"] = "档主不存在"
             return Response(data)
         dishTime = dict((request.data).lists())['dishAvailableTime']
         dishAvailableTime = dish_available_time_encode(dishTime)
@@ -822,7 +865,7 @@ def dish(request):
             }
         else:
             data["code"] = 400
-            data["message"] = "something wrong"
+            data["message"] = "发生了一些错误"
     return Response(data)
 
 @api_view(['GET','POST'])
@@ -831,12 +874,14 @@ def dish(request):
 def dish_detail(request,dishID):
     data = {}
     if request.method=="POST":
+        if data_is_incomplete(request,"dishAvailableTime","dishName","dishIntro","dishPrice","dishStatus"):
+            return Response(incomplete_info)
         user = get_user_by_request_token(request)
         try:
             staff = Staff.objects.get(user=user.pk)
         except:
             data["code"] = 404
-            data["message"] = "staff not exists"
+            data["message"] = "档主不存在"
             return Response(data)
         dish = Dish.objects.get(dishID=dishID)
         dishTime = dict((request.data).lists())['dishAvailableTime']
@@ -880,7 +925,7 @@ def dish_detail(request,dishID):
             data["data"] = {"dishImages":successful_image}
         else:
             data["code"] = 400
-            data["message"] = "something wrong"
+            data["message"] = "发生了一些错误"
             data = serializers.errors
     elif request.method=="GET":
         user = get_user_by_request_token(request)
@@ -888,12 +933,12 @@ def dish_detail(request,dishID):
             staff = Staff.objects.get(user=user.pk)
         except:
             data["code"] = 404
-            data["message"] = "staff not exists"
+            data["message"] = "档主不存在"
             return Response(data)
         dish = Dish.objects.get(dishID=dishID)
         if not dish.stallID==staff.stallID:
-            data["code"] = 403
-            data["message"] = "no permission"
+            data["code"] = 400
+            data["message"] = "没有权限"
             return Response(data)
         data["code"] = 200
         data["message"] = "successful operation"
