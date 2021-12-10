@@ -57,11 +57,11 @@ def format_admin_statistic():
     all_user_number = User.objects.all().count()
     today_user_number = User.objects.filter(last_login__gte=datetime.date.today()).count()
     login_rate = round(today_user_number/all_user_number*100,2)
-    all_admin_number = Admin.objects.all().count()
+    all_staff_number = Staff.objects.all().count()
     all_stall_number = Stall.objects.all().count()
     data["userNumber"] = all_user_number
     data["userLoginRate"] = login_rate
-    data["adminNumber"] = all_admin_number
+    data["staffNumber"] = all_staff_number
     data["stallNumber"] = all_stall_number
     return data
 
