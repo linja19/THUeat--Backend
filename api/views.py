@@ -339,7 +339,7 @@ def stalls(request, stallID):
                 data["message"] = "stall inactive"
         except:
             data["code"] = 404
-            data["message"] = "stall not found"
+            data["message"] = "档口不存在"
     return Response(data)
 
 @api_view(["POST","GET","DELETE"])
