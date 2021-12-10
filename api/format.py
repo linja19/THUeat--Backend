@@ -37,8 +37,12 @@ def format_canteen(canteen):
         stall_dic["stallID"] = stall.stallID
         stall_dic["stallRate"] = stall.stallRate
         stall_dic["stallRateNumber"] = stall.stallRateNum
+        stall_dic["stallImages"] = ""
         image_list = StallImage.objects.filter(stallID=stall.pk)
-        stall_dic["stallImages"] = [BASE_URL + image.stallImage.url for image in image_list]
+        try:
+            stall_dic["stallImages"] = BASE_URL + image_list[0].stallImage.url
+        except:
+            pass
         stall_dic["stallName"] = stall.stallName
         review_list = Review.objects.filter(stallID=stall.pk)
         reviews = []
@@ -94,8 +98,12 @@ def format_stall_dish(dish,user,login):
     data = {}
     data["dishID"] = dish.dishID
     data["dishName"] = dish.dishName
+    data["dishImages"] = ""
     image_list = DishImage.objects.filter(dishID=dish.pk)
-    data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
+    try:
+        data["dishImages"] = BASE_URL + image_list[0].dishImage.url
+    except:
+        pass
     data["dishPrice"] = dish.dishPrice
     data["dishLikes"] = dish.dishLikes
     if login:
