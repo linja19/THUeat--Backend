@@ -54,8 +54,9 @@ def format_student(student):
 import datetime
 def format_admin_statistic():
     data = {}
-    all_user_number = User.objects.all().count()
-    today_user_number = User.objects.filter(last_login__gte=datetime.date.today()).count()
+    student_list = User.objects.exclude(is_staff=True).exclude(is_active=False)
+    all_user_number = student_list.count()
+    today_user_number = student_list.filter(last_login__gte=datetime.date.today()).count()
     login_rate = round(today_user_number/all_user_number*100,2)
     all_staff_number = Staff.objects.all().count()
     all_stall_number = Stall.objects.all().count()
