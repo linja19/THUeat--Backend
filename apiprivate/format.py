@@ -167,6 +167,100 @@ def format_review_list(review_list):
         data_list.append(data)
     return data_list
 
+def operation_time_encode(time):
+    session = time.split('/')
+    session_data_list = []
+    start = []
+    end = []
+    for each in session:
+        if "早餐" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = 'B'+'-'+start_time+'-'+end_time
+            session_data_list.append(session_data)
+            start.append(int(start_time.replace(':','')))
+            end.append(int(end_time.replace(':','')))
+        elif "午餐" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = 'L' + '-' + start_time + '-' + end_time
+            session_data_list.append(session_data)
+            start.append(int(start_time.replace(':', '')))
+            end.append(int(end_time.replace(':', '')))
+        elif "晚餐" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = 'D' + '-' + start_time + '-' + end_time
+            session_data_list.append(session_data)
+            start.append(int(start_time.replace(':', '')))
+            end.append(int(end_time.replace(':', '')))
+        elif "宵夜" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data = 'S' + '-' + start_time + '-' + end_time
+            session_data_list.append(session_data)
+            start.append(int(start_time.replace(':', '')))
+            end.append(int(end_time.replace(':', '')))
+        elif "自定义" in each:
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            start.append(int(start_time.replace(':', '')))
+            end.append(int(end_time.replace(':', '')))
+            session_data = 'C' + '-' + start_time + '-' + end_time
+            session_data_list = [session_data]
+            break
+    session_data = '/'.join(session_data_list)
+    earliest_start_time = min(start)
+    latest_end_time = max(end)
+    return session_data,earliest_start_time,latest_end_time
+
+def operation_time_decode(time):
+    session = time.split('/')
+    operation_time_list = []
+    for each in session:
+        if "B" in each:
+            session_data = {}
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data["name"] = "早餐"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
+            operation_time_list.append(session_data)
+        elif "L" in each:
+            session_data = {}
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data["name"] = "午餐"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
+            operation_time_list.append(session_data)
+        elif "D" in each:
+            session_data = {}
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data["name"] = "晚餐"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
+            operation_time_list.append(session_data)
+        elif "S" in each:
+            session_data = {}
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data["name"] = "宵夜"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
+            operation_time_list.append(session_data)
+        elif "C" in each:
+            session_data = {}
+            start_time = each.split('-')[1]
+            end_time = each.split('-')[2]
+            session_data["name"] = "自定义"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
+            operation_time_list = [session_data]
+            break
+    return operation_time_list
+
 def format_mystall(stall):
     data = {}
     canteen = Canteen.objects.get(canteenID=stall.canteenID.pk)
@@ -180,7 +274,7 @@ def format_mystall(stall):
     data["stallRateNumber"] = stall.stallRateNum
     data["canteenRate"] = calculate_canteen_rate(canteen)
     data["bestDishName"] = get_best_dish_name(stall)
-    data["stallOperationtime"] = stall.stallOperationtime
+    data["stallOperationtime"] = operation_time_decode(stall.stallOperationtime)
     return data
 
 def calculate_canteen_rate(canteen):
@@ -193,6 +287,24 @@ def get_best_dish_name(stall):
     best_dish = dish_list.order_by("-dishLikes")[0]
     return best_dish.dishName
 
+def dish_available_time_encode(time_list):
+    session_list = []
+    for session in time_list:
+        if "早餐" in session:
+            session_list.append("早餐")
+        if "午餐" in session:
+            session_list.append("午餐")
+        if "晚餐" in session:
+            session_list.append("晚餐")
+        if "宵夜" in session:
+            session_list.append("宵夜")
+    session_data = ",".join(session_list)
+    return session_data
+
+def dish_available_time_decode(time):
+    time_list = time.split(',')
+    return time_list
+
 def format_dish_list(dish_list):
     data_list = []
     for dish in dish_list:
@@ -204,7 +316,7 @@ def format_dish_list(dish_list):
         image_list = DishImage.objects.filter(dishID=dish.pk)
         data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
         data["dishLikes"] = dish.dishLikes
-        data["dishAvailableTime"] = dish.dishAvailableTime
+        data["dishAvailableTime"] = dish_available_time_decode(dish.dishAvailableTime)
         data["dishStatus"] = dish.is_active
         data_list.append(data)
     return data_list
@@ -217,7 +329,7 @@ def format_dish(dish):
     image_list = DishImage.objects.filter(dishID=dish.pk)
     data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
     data["dishLikes"] = dish.dishLikes
-    data["dishAvailableTime"] = dish.dishAvailableTime
+    data["dishAvailableTime"] = dish_available_time_decode(dish.dishAvailableTime)
     data["dishStatus"] = dish.is_active
     dishreview_list = DishReview.objects.filter(dishID=dish.dishID)
     data["reviews"] = format_dishreview_list(dishreview_list)
