@@ -386,7 +386,6 @@ def selfdetails(request):
             data["code"] = 400
             data["message"] = "口令有误"
             return Response(data)
-
         if request.data["phone"]=="":
             phone = user.userPhone
         else:
@@ -397,10 +396,16 @@ def selfdetails(request):
         }
         if request.data["oldPassword"]=="":
             if user.is_admin:
+                admin = Admin.objects.get(user=user.pk)
+                if not user.is_active and admin.first_login:
+                    pass
+                elif not user.is_active:
+                    data["code"] = 400
+                    data["message"] = "账户被冻结"
+                    return Response(data)
                 serializers = UpdateAdminDetailsSerializer(user,data=user_data)
                 if serializers.is_valid():
                     serializers.save()
-                    admin = Admin.objects.get(user=user.pk)
                     data["code"] = 200
                     data["message"] = "successful operation"
                 else:
