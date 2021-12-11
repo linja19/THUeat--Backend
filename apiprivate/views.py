@@ -120,7 +120,7 @@ def check_stallID_is_valid(stallID):
 def createstaff(request):
     data = {}
     if request.method=='POST':
-        if data_is_incomplete(request,"staffName","staffPhone","stallID"):
+        if data_is_incomplete(request,"staffValidName","staffPhone","stallID"):
             return Response(incomplete_info)
         username = get_random_username()
         password = get_random_password()
@@ -137,7 +137,7 @@ def createstaff(request):
             staff_data = {
                 "user":user.pk,
                 "stallID":request.data["stallID"],
-                "staffName":request.data["staffName"]
+                "staffName":request.data["staffValidName"]
             }
             staffserializer = StaffRegisterSerializer(data=staff_data)
             if staffserializer.is_valid():
