@@ -436,10 +436,12 @@ def selfdetails(request):
                 else:
                     data["code"] = 400
                     data["message"] = ""
-                    if not user.check_password(request.data["oldPassword"]):
-                        data["message"] += "密码错误"
                     if User.objects.exclude(pk=user.pk).filter(userName=request.data["name"]).exists():
                         data["message"] += "用户名已存在"
+                    elif not user.check_password(request.data["oldPassword"]):
+                        data["message"] += "密码错误"
+                    else:
+                        data["message"] += "发生了一些错误"
 
             elif user.is_staff:
                 serializers = UpdateAdminSerializer(user, data=user_data)
@@ -458,10 +460,12 @@ def selfdetails(request):
                 else:
                     data["code"] = 400
                     data["message"] = ""
-                    if not user.check_password(request.data["oldPassword"]):
-                        data["message"] += "密码错误"
                     if User.objects.exclude(pk=user.pk).filter(userName=request.data["name"]).exists():
                         data["message"] += "用户名已存在"
+                    elif not user.check_password(request.data["oldPassword"]):
+                        data["message"] += "密码错误"
+                    else:
+                        data["message"] += "发生了一些错误"
     elif request.method=="GET":
         try:
             user = get_user_by_request_token(request)
