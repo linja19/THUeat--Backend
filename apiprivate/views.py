@@ -120,7 +120,7 @@ def check_stallID_is_valid(stallID):
 def createstaff(request):
     data = {}
     if request.method=='POST':
-        if data_is_incomplete(request,"staffValidName","staffPhone","stallID"):
+        if data_is_incomplete(request,"staffValidName","staffPhone","staffStallID"):
             return Response(incomplete_info)
         username = get_random_username()
         password = get_random_password()
@@ -132,11 +132,11 @@ def createstaff(request):
             "password":password
         }
         userserializer = UserRegisterSerializer(data=user_data)
-        if (userserializer.is_valid()&check_stallID_is_valid(request.data["stallID"])):
+        if (userserializer.is_valid()&check_stallID_is_valid(request.data["staffStallID"])):
             user = userserializer.save()
             staff_data = {
                 "user":user.pk,
-                "stallID":request.data["stallID"],
+                "stallID":request.data["staffStallID"],
                 "staffName":request.data["staffValidName"]
             }
             staffserializer = StaffRegisterSerializer(data=staff_data)
@@ -163,7 +163,7 @@ def createstaff(request):
             message = ""
             if User.objects.filter(userName=request.data["staffName"]).exists():
                 message += "用户名已存在"
-            if not Stall.objects.filter(stallID=request.data["stallID"]).exists():
+            if not Stall.objects.filter(stallID=request.data["staffStallID"]).exists():
                 message += "stallID不存在"
             data["message"] = message
     elif request.method=="GET":
