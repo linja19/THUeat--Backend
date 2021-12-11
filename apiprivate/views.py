@@ -42,10 +42,24 @@ def login(request):
                 first_login = False
                 validname = 'superadmin'
             elif user.is_admin:
+                admin = Admin.objects.get(user=user.pk)
+                if not user.is_active and admin.first_login:
+                    pass
+                elif not user.is_active:
+                    data["code"] = 400
+                    data["message"] = "账户被冻结"
+                    return Response(data)
                 type = "admin"
                 first_login = Admin.objects.get(user=user.pk).first_login
                 validname = Admin.objects.get(user=user.pk).adminName
             elif user.is_staff:
+                staff = Staff.objects.get(user=user.pk)
+                if not user.is_active and staff.first_login:
+                    pass
+                elif not user.is_active:
+                    data["code"] = 400
+                    data["message"] = "账户被冻结"
+                    return Response(data)
                 type = "staff"
                 first_login = Staff.objects.get(user=user.pk).first_login
                 validname = Staff.objects.get(user=user.pk).staffName
@@ -412,10 +426,16 @@ def selfdetails(request):
                     data["code"] = 400
                     data["message"] = "用户名已存在"
             elif user.is_staff:
+                staff = Staff.objects.get(user=user.pk)
+                if not user.is_active and staff.first_login:
+                    pass
+                elif not user.is_active:
+                    data["code"] = 400
+                    data["message"] = "账户被冻结"
+                    return Response(data)
                 serializers = UpdateAdminDetailsSerializer(user, data=user_data)
                 if serializers.is_valid():
                     serializers.save()
-                    staff = Staff.objects.get(user=user.pk)
                     data["code"] = 200
                     data["message"] = "successful operation"
                 else:
