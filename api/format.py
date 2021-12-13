@@ -94,6 +94,10 @@ def format_recommend_stall_list(stall_list):
         datalist.append(data)
     return datalist
 
+def dish_available_time_decode(time):
+    time_list = time.split(',')
+    return time_list
+
 def format_stall_dish(dish,user,login):
     data = {}
     data["dishID"] = dish.dishID
@@ -113,7 +117,7 @@ def format_stall_dish(dish,user,login):
             data["myDishLike"] = False
     else:
         data["myDishLike"] = None
-    data["dishAvailableTime"] = dish.dishAvailableTime
+    data["dishAvailableTime"] = dish_available_time_decode(dish.dishAvailableTime)
     dishreviews = []
     dishreview_list = DishReview.objects.filter(dishID=dish.pk)
     for dishreview in dishreview_list:
@@ -170,33 +174,47 @@ def operation_time_decode(time):
     operation_time_list = []
     for each in session:
         if "B" in each:
+            session_data = {}
             start_time = each.split('-')[1]
             end_time = each.split('-')[2]
-            session_data = "早餐" + start_time + "-" + end_time
+            session_data["name"] = "早餐"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
             operation_time_list.append(session_data)
         elif "L" in each:
+            session_data = {}
             start_time = each.split('-')[1]
             end_time = each.split('-')[2]
-            session_data = "午餐" + start_time + "-" + end_time
+            session_data["name"] = "午餐"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
             operation_time_list.append(session_data)
         elif "D" in each:
+            session_data = {}
             start_time = each.split('-')[1]
             end_time = each.split('-')[2]
-            session_data = "晚餐" + start_time + "-" + end_time
+            session_data["name"] = "晚餐"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
             operation_time_list.append(session_data)
         elif "S" in each:
+            session_data = {}
             start_time = each.split('-')[1]
             end_time = each.split('-')[2]
-            session_data = "宵夜" + start_time + "-" + end_time
+            session_data["name"] = "宵夜"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
             operation_time_list.append(session_data)
         elif "C" in each:
+            session_data = {}
             start_time = each.split('-')[1]
             end_time = each.split('-')[2]
-            session_data = "自定义" + start_time + "-" + end_time
+            session_data["name"] = "自定义"
+            session_data["startTime"] = start_time
+            session_data["endTime"] = end_time
             operation_time_list = [session_data]
             break
-    operation_time = ",".join(operation_time_list)
-    return operation_time
+    return operation_time_list
 
 def format_stall(stall, user, login):
     data = {}
@@ -260,6 +278,10 @@ def format_myreview(review):
     data["reviewLikes"] = review.reviewLikes
     data["reply"] = review.reply
     dishes = []
+    if review.reply:
+        reply = ReplyByStaff.objects.get(parent_reviewID=review.pk)
+        data["replyDateTime"] = reply.replyDateTime
+        data["replyComment"] = reply.replyContent
     for dishreview in dishreview_list:
         dish = Dish.objects.get(dishID=dishreview.dishID.pk)
         dishes.append({
@@ -285,7 +307,7 @@ def format_dish(dish,user,login):
     image_list = DishImage.objects.filter(dishID=dish.pk)
     data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
     data["dishLikes"] = dish.dishLikes
-    data["dishAvailableTime"] = dish.dishAvailableTime
+    data["dishAvailableTime"] = dish_available_time_decode(dish.dishAvailableTime)
     if login:
         if LikeDish.objects.filter(userID=user.pk, dishID=dish.dishID).exists():
             data["myDishLike"] = True
@@ -340,7 +362,7 @@ def format_recommend_dish(dish,user,login):
     except:
         pass
     data["dishLikes"] = dish.dishLikes
-    data["dishAvailableTime"] = dish.dishAvailableTime
+    data["dishAvailableTime"] = dish_available_time_decode(dish.dishAvailableTime)
     if login:
         if LikeDish.objects.filter(userID=user.pk, dishID=dish.dishID).exists():
             data["myDishLike"] = True
