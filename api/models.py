@@ -169,6 +169,10 @@ class Dish(models.Model):
     stallID = models.ForeignKey(Stall,on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
 
+    def save(self, *args, **kwargs):
+        self.dishPrice = round(self.dishPrice, 2)
+        super(Dish, self).save(*args, **kwargs)
+
     def __str__(self):
         return self.dishName
 
