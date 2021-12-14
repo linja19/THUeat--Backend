@@ -476,7 +476,7 @@ def reviewslike(request,reviewID):
                 serializer.save()
                 review = Review.objects.get(reviewID=reviewID)
                 if review.reviewLikes:
-                    review.reviewLikes += 1
+                    review.reviewLikes = LikeReview.objects.filter(reviewID=reviewID).count()
                 else:
                     review.reviewLikes = 1
                 review.save()
@@ -490,7 +490,7 @@ def reviewslike(request,reviewID):
         if likereview:
             likereview.delete()
             review = Review.objects.get(reviewID=reviewID)
-            review.reviewLikes -= 1
+            review.reviewLikes = LikeReview.objects.filter(reviewID=reviewID).count()
             review.save()
             data["code"] = 200
             data["message"] = "successful operation"
@@ -528,7 +528,7 @@ def dishes(request,dishID):
                 serializer.save()
                 dish = Dish.objects.get(dishID=dishID)
                 if dish.dishLikes:
-                    dish.dishLikes += 1
+                    dish.dishLikes = LikeDish.objects.filter(dishID=dishID).count()
                 else:
                     dish.dishLikes = 1
                 dish.save()
@@ -547,7 +547,7 @@ def dishes(request,dishID):
         if likedish:
             likedish.delete()
             dish = Dish.objects.get(dishID=dishID)
-            dish.dishLikes -= 1
+            dish.dishLikes = LikeDish.objects.filter(dishID=dishID).count()
             dish.save()
             data["code"] = 200
             data["message"] = "successful operation"
