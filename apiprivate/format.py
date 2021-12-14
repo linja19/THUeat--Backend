@@ -306,6 +306,23 @@ def dish_available_time_decode(time):
     time_list = time.split(',')
     return time_list
 
+def stall_operation_time_session_decode(time):
+    session = time.split('/')
+    operation_time_list = []
+    for each in session:
+        if "B" in each:
+            operation_time_list.append("早餐")
+        elif "L" in each:
+            operation_time_list.append("午餐")
+        elif "D" in each:
+            operation_time_list.append("晚餐")
+        elif "S" in each:
+            operation_time_list.append("宵夜")
+        elif "C" in each:
+            operation_time_list = ["自定义"]
+            break
+    return operation_time_list
+
 def format_dish_list(dish_list):
     data_list = []
     for dish in dish_list:
@@ -319,6 +336,7 @@ def format_dish_list(dish_list):
         data["dishLikes"] = dish.dishLikes
         data["dishAvailableTime"] = dish_available_time_decode(dish.dishAvailableTime)
         data["dishStatus"] = dish.is_active
+        data["stallOperationtime"] = stall_operation_time_session_decode(dish.stallID.stallOperationtime)
         data_list.append(data)
     return data_list
 
@@ -332,6 +350,7 @@ def format_dish(dish):
     data["dishLikes"] = dish.dishLikes
     data["dishAvailableTime"] = dish_available_time_decode(dish.dishAvailableTime)
     data["dishStatus"] = dish.is_active
+    data["stallOperationtime"] = stall_operation_time_session_decode(dish.stallID.stallOperationtime)
     dishreview_list = DishReview.objects.filter(dishID=dish.dishID)
     data["reviews"] = format_dishreview_list(dishreview_list)
     return data
