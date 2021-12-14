@@ -386,7 +386,7 @@ def reviews(request):
                 stall.stallRate = round(stall.stallRate,2)
             else:
                 stall.stallRate = request.data["rate"]
-            stall.stallRateNum += 1
+            stall.stallRateNum = Review.objects.filter(stallID=stallID).count()
             stall.save()
             image_list = dict((request.data).lists())['reviewImages']
             if request.data["reviewImages"]:
