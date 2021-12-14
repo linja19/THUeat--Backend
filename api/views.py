@@ -343,6 +343,10 @@ def stalls(request, stallID):
             data["message"] = "档口不存在"
     return Response(data)
 
+def review_tags_encode(tags_list):
+    tags = "/".join(tags_list)
+    return tags
+
 @api_view(["POST","GET","DELETE"])
 @authentication_classes([TokenAuthentication])
 @permission_classes([IsAuthenticated])
@@ -350,7 +354,7 @@ def reviews(request):
     data = {}
     user = get_user_by_request_token(request)               # get user by token
     if request.method=='POST':
-        if data_is_incomplete(request,"reviewComment","reviewTags","rate","stallID"):
+        if data_is_incomplete(request,"reviewComment","reviewTags","rate"):
             return Response(incomplete_info)
         try:                                                # find stallID in url
             stallID = request.query_params["stallID"]
@@ -358,9 +362,10 @@ def reviews(request):
             data["code"] = 404
             data["message"] = "档口不存在"
             return Response(data)
+        review_tags = dict((request.data).lists())["reviewTags"]
         review_data = {
             "reviewComment":request.data["reviewComment"],
-            "reviewTags":request.data["reviewTags"],
+            "reviewTags":review_tags_encode(review_tags),
             "rate":request.data["rate"],
             "userID":user.pk,
             "stallID":stallID

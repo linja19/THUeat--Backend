@@ -140,6 +140,12 @@ def format_stall_list(stall_list):
         datalist.append(data)
     return datalist
 
+def review_tags_decode(tags):
+    if tags:
+        return tags.split("/")
+    else:
+        return []
+
 def format_review_list(review_list):
     data_list = []
     for review in review_list:
@@ -151,7 +157,7 @@ def format_review_list(review_list):
         data["rate"] = review.rate
         data["reviewComment"] = review.reviewComment
         data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
-        data["reviewTags"] = review.reviewTags
+        data["reviewTags"] = review_tags_decode(review.reviewTags)
         data["reviewLikes"] = review.reviewLikes
         data["replyDateTime"] = ""
         data["replyComment"] = ""
@@ -367,7 +373,7 @@ def format_dishreview_list(dishreview_list):
         data["rate"] = review.rate
         data["reviewComment"] = review.reviewComment
         data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in ReviewImage.objects.filter(reviewID=review.reviewID)]
-        data["reviewTags"] = review.reviewTags
+        data["reviewTags"] = review_tags_decode(review.reviewTags)
         data["reviewLikes"] = review.reviewLikes
         data["replyDateTime"] = ""
         data["replyComment"] = ""

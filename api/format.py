@@ -249,7 +249,7 @@ def format_review(review):
     data["reviewDateTime"] = review.reviewDateTime
     data["reviewComment"] = review.reviewComment
     data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in image_list]
-    data["reviewTags"] = review.reviewTags
+    data["reviewTags"] = review_tags_decode(review.reviewTags)
     data["reviewLikes"] = review.reviewLikes
     data["reply"] = review.reply
     dishes = []
@@ -274,7 +274,7 @@ def format_myreview(review):
     data["rate"] = review.rate
     data["reviewComment"] = review.reviewComment
     data["reviewImages"] = [BASE_URL + image.reviewImages.url for image in image_list]
-    data["reviewTags"] = review.reviewTags
+    data["reviewTags"] = review_tags_decode(review.reviewTags)
     data["reviewLikes"] = review.reviewLikes
     data["reply"] = review.reply
     dishes = []
@@ -322,6 +322,12 @@ def format_dish(dish,user,login):
     data["reviews"] = dishreviews
     return data
 
+def review_tags_decode(tags):
+    if tags:
+        return tags.split("/")
+    else:
+        return []
+
 def format_dish_review(dishreview,user,login):
     data = {}
     data["userName"] = dishreview.reviewID.userID.userName
@@ -331,7 +337,7 @@ def format_dish_review(dishreview,user,login):
     data["rate"] = dishreview.reviewID.rate
     data["reviewImages"] = [BASE_URL + reviewimage.reviewImages.url for reviewimage in ReviewImage.objects.filter(reviewID=dishreview.reviewID.pk)]
     data["reviewComment"] = dishreview.reviewID.reviewComment
-    data["reviewTags"] = dishreview.reviewID.reviewTags
+    data["reviewTags"] = review_tags_decode(dishreview.reviewID.reviewTags)
     data["reviewLikes"] = dishreview.reviewID.reviewLikes
 
     if login:
