@@ -381,6 +381,12 @@ def reviews(request):
         if (reviewserializer.is_valid())&(check_dish_is_valid(request.data["dishID"])):
             review = reviewserializer.save()                            # save serializer to create primary key
             stall = Stall.objects.get(stallID=stallID)
+            if stall.stallRate:
+                stallRate = Review.objects.filter(stallID=stallID).aggregate(models.Avg('rate'))["rate__avg"]
+                stall.stallRate = (stallRate*stall.stallRateNum + int(request.data["rate"]))/(stall.stallRateNum+1)
+                stall.stallRate = round(stall.stallRate,2)
+            else:
+                stall.stallRate = request.data["rate"]
             stall.stallRateNum += 1
             stall.save()
             image_list = dict((request.data).lists())['reviewImages']
