@@ -376,7 +376,7 @@ def reviews(request):
             stall = Stall.objects.get(stallID=stallID)
             if stall.stallRate:
                 stall.stallRate = Review.objects.filter(stallID=stallID).aggregate(models.Avg('rate'))["rate__avg"]
-                stall.stallRate = round(stall.stallRate,2)
+                stall.stallRate = round(stall.stallRate,1)
             else:
                 stall.stallRate = request.data["rate"]
             stall.stallRateNum = Review.objects.filter(stallID=stallID).count()
