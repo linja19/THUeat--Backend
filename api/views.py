@@ -382,8 +382,7 @@ def reviews(request):
             review = reviewserializer.save()                            # save serializer to create primary key
             stall = Stall.objects.get(stallID=stallID)
             if stall.stallRate:
-                stallRate = Review.objects.filter(stallID=stallID).aggregate(models.Avg('rate'))["rate__avg"]
-                stall.stallRate = (stallRate*stall.stallRateNum + int(request.data["rate"]))/(stall.stallRateNum+1)
+                stall.stallRate = Review.objects.filter(stallID=stallID).aggregate(models.Avg('rate'))["rate__avg"]
                 stall.stallRate = round(stall.stallRate,2)
             else:
                 stall.stallRate = request.data["rate"]
