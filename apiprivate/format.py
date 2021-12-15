@@ -325,8 +325,11 @@ def compare_dish_time_stall_time(dish,stall):
     dish.save()
 
 def dish_available_time_decode(time):
-    time_list = time.split(',')
-    return time_list
+    if time:
+        time_list = time.split(',')
+        return time_list
+    else:
+        return []
 
 def stall_operation_time_session_decode(time):
     session = time.split('/')
