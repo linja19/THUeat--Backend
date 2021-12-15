@@ -162,6 +162,10 @@ def user_login(request):
         password = request.data['password']                     # get password
         try:
             user = User.objects.get_by_natural_key(userName)    # get user by using userName
+            if user.is_admin or user.is_superuser or user.is_staff:
+                data['code'] = 400
+                data['message'] = '私人页面账号'
+                return Response(data)
             if not user.is_active:
                 data['code'] = 400
                 data['message'] = '账号未激活'
