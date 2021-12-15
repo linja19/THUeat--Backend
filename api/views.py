@@ -304,14 +304,14 @@ def recommendstall(request):
         try:
             numbers = int(request.query_params["numbers"])
             if ratings:
-                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False)[:numbers]
+                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False).exclude(stallRate=0)[:numbers]
             else:
-                stall_list = Stall.objects.all().exclude(is_active=False)[:numbers]
+                stall_list = Stall.objects.all().exclude(is_active=False).exclude(stallRate=0)[:numbers]
         except:
             if ratings:
-                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False)
+                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False).exclude(stallRate=0)
             else:
-                stall_list = Stall.objects.all().exclude(is_active=False)
+                stall_list = Stall.objects.all().exclude(is_active=False).exclude(stallRate=0)
         data["code"] = 200
         data["message"] = "successful operation"
         data["data"] = format_recommend_stall_list(stall_list)
@@ -593,14 +593,14 @@ def recommenddish(request):
         try:
             numbers = int(request.query_params["numbers"])
             if likes:
-                dish_list = Dish.objects.order_by("-dishLikes").exclude(is_active=False)[:numbers]
+                dish_list = Dish.objects.order_by("-dishLikes").exclude(is_active=False).exclude(dishLikes=0)[:numbers]
             else:
-                dish_list = Dish.objects.all().exclude(is_active=False)[:numbers]
+                dish_list = Dish.objects.all().exclude(is_active=False).exclude(dishLikes=0)[:numbers]
         except:
             if likes:
-                dish_list = Dish.objects.order_by("-dishLikes").exclude(is_active=False)
+                dish_list = Dish.objects.order_by("-dishLikes").exclude(is_active=False).exclude(dishLikes=0)
             else:
-                dish_list = Dish.objects.all().exclude(is_active=False)
+                dish_list = Dish.objects.all().exclude(is_active=False).exclude(dishLikes=0)
         messages = []
         for dish in dish_list:
             messages.append(format_recommend_dish(dish,user,login))
