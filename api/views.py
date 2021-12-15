@@ -14,6 +14,7 @@ import re
 from django.core.mail import send_mail
 import threading
 from THUeat.settings import BASE_URL
+from apiprivate.permissions import *
 
 # Create your views here.
 
@@ -24,6 +25,8 @@ def get_user_by_request_token(request):
         token = token.group(1)
 
     user = Token.objects.get(key=token).user  # get user by using token
+    if user.is_superuser or user.is_admin or user.is_staff:
+        return False
     return user
 
 def get_student_by_user(user):
@@ -180,7 +183,7 @@ def user_login(request):
 
 @api_view(['GET','POST'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsNormalUser])
 def user_details(request):
     data = {}
     if request.method=='GET':
@@ -241,7 +244,7 @@ def user_details(request):
 
 @api_view(['POST'])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsNormalUser])
 def user_password(request):
     data = {}
     user = get_user_by_request_token(request)               # get user by token
@@ -332,6 +335,10 @@ def stalls(request, stallID):
     if request.method=='GET':
         try:
             user = get_user_by_request_token(request)     # get user by token
+            if not user:
+                data["code"] = 400
+                data["message"] = "用户不存在"
+                return Response(data)
             login = True
         except:
             user = 0
@@ -356,7 +363,7 @@ def review_tags_encode(tags_list):
 
 @api_view(["POST","GET","DELETE"])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsNormalUser])
 def reviews(request):
     data = {}
     user = get_user_by_request_token(request)               # get user by token
@@ -437,7 +444,7 @@ def reviews(request):
 
 @api_view(["DELETE"])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsNormalUser])
 def deletereviews(request,reviewID):
     data = {}
     user = get_user_by_request_token(request)  # get user by token
@@ -458,7 +465,7 @@ def deletereviews(request,reviewID):
 
 @api_view(["POST","DELETE"])
 @authentication_classes([TokenAuthentication])
-@permission_classes([IsAuthenticated])
+@permission_classes([IsNormalUser])
 def reviewslike(request,reviewID):
     data = {}
     user = get_user_by_request_token(request)  # get user by token
@@ -507,6 +514,10 @@ def dishes(request,dishID):
     if request.method=="POST":
         try:
             user = get_user_by_request_token(request)  # get user by token
+            if not user:
+                data["code"] = 400
+                data["message"] = "用户不存在"
+                return Response(data)
         except:
             data["code"] = 400
             data["message"] = "口令有误"

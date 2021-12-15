@@ -34,3 +34,8 @@ class IsStaff(permissions.BasePermission):
         if request.user.is_staff:
             return True
         return False
+
+class IsNormalUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if request.user.is_authenticated and not request.user.is_staff and not request.user.is_admin and not request.user.is_superuser:
+            return True
