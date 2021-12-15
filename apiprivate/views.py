@@ -161,17 +161,28 @@ def createstaff(request):
                 content = '''Hi '''+ staff.staffName + ''', this is your account information, visit the website and login. After login, please change your username and password.
                 username:''' + username + '''
                 password:''' + password  # create email content
-                arg = (  # send_mail args
+                # arg = (  # send_mail args
+                #     "THU-EAT Staff Account",
+                #     content,
+                #     settings.EMAIL_HOST_USER,
+                #     [user.userPhone],
+                #     True
+                # )
+                # t1 = threading.Thread(target=send_mail, args=arg)  # multithreading send verification number to email
+                # t1.start()
+                send_mail(
                     "THU-EAT Staff Account",
                     content,
                     settings.EMAIL_HOST_USER,
                     [user.userPhone],
                     True
                 )
-                t1 = threading.Thread(target=send_mail, args=arg)  # multithreading send verification number to email
-                t1.start()
                 data['code'] = 200
                 data['message'] = 'successful operation'
+                data['user'] = {
+                    "username":username,
+                    "password":password
+                }
         else:
             data["code"] = 400
             message = ""
@@ -271,17 +282,28 @@ def createadmin(request):
                 content = '''Hi ''' + admin.adminName + ''', this is your account information, visit the website and login. After login, please change your username and password.
                             username:''' + username + '''
                             password:''' + password  # create email content
-                arg = (  # send_mail args
+                # arg = (  # send_mail args
+                #     "THU-EAT Admin Account",
+                #     content,
+                #     settings.EMAIL_HOST_USER,
+                #     [user.userPhone],
+                #     True
+                # )
+                # t1 = threading.Thread(target=send_mail, args=arg)  # multithreading send verification number to email
+                # t1.start()
+                send_mail(
                     "THU-EAT Admin Account",
                     content,
                     settings.EMAIL_HOST_USER,
                     [user.userPhone],
                     True
                 )
-                t1 = threading.Thread(target=send_mail, args=arg)  # multithreading send verification number to email
-                t1.start()
                 data['code'] = 200
                 data['message'] = 'successful operation'
+                data['user'] = {
+                    "username":username,
+                    "password":password
+                }
     elif request.method=="GET":
         admin_list = Admin.objects.all()
         data["code"] = 200
