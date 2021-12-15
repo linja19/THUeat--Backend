@@ -17,7 +17,7 @@ import environ
 env = environ.Env()
 environ.Env.read_env()
 
-BASE_URL = "https://linja19.pythonanywhere.com"
+BASE_URL = "http://localhost:8000"
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -33,7 +33,7 @@ SECRET_KEY = 'django-insecure-@g+wm52s(rpv_8cd@ec&4u9v*_i(plzi4(o!st957#4ayf%$-$
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-CORS_ORIGIN_ALLOW_ALL=True
+
 
 # Application definition
 
@@ -44,7 +44,6 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'corsheaders',
     'api',
     'apiprivate',
     'rest_framework',
@@ -61,8 +60,6 @@ REST_FRAMEWORK = {
 }
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -99,15 +96,13 @@ WSGI_APPLICATION = 'THUeat.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'linja19$django_database',
+        'NAME': 'django_database',
         'USER': env('DATABASE_USER'),
         'PASSWORD': env('DATABASE_PASSWORD'),
         'HOST': env('DATABASE_HOST'),
+        'PORT': env('DATABASE_PORT'),
         'OPTIONS': {
          "init_command": "SET foreign_key_checks = 0;",
-        },
-        'TEST': {
-          'NAME': 'linja19$test_django_database',
         },
     }
 }
