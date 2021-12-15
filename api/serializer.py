@@ -54,7 +54,8 @@ class UpdateStudentSerializer(serializers.ModelSerializer):
         model = Student
         fields = ['userEmail','userImage']
     def update(self,instance,validated_data):       # overwrite update function
-        instance.userImage.delete(save=True)
+        if not instance.userImage.url=='default/default_user.png':
+            instance.userImage.delete(save=True)
         instance.userEmail = validated_data['userEmail']
         instance.userImage = validated_data['userImage']
         instance.save()
