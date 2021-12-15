@@ -719,6 +719,10 @@ def mystall(request):
             "stallDescribe":request.data["stallDescribe"],
             "stallOperationtime":operation_time
         }
+        if "C" in stall.stallOperationtime and "自定义" not in stall_operation_time_session_decode(operation_time):
+            change_all_dish_time = True
+        else:
+            change_all_dish_time = False
         mystallserializer = MystallSerializer(stall,data=request_data)
         if mystallserializer.is_valid():
             mystallserializer.save()
@@ -750,6 +754,14 @@ def mystall(request):
             else:
                 pass
             update_canteen_operation_time(canteen,start,end)
+            if change_all_dish_time:
+                for dish in Dish.objects.filter(stallID=stall.stallID):
+                    dish_time = stall_operation_time_session_decode(operation_time)
+                    dish.dishAvailableTime = dish_available_time_encode(dish_time)
+                    dish.save()
+            else:
+                for dish in Dish.objects.filter(stallID=stall.stallID):
+                    compare_dish_time_stall_time(dish, stall)
             data["code"] = 200
             data["message"] += "successful operation"
             data["data"] = {"stallImages":successful_image}
@@ -890,6 +902,7 @@ def dish(request):
                     if imageserializer.is_valid():
                         dishimage = imageserializer.save()
                         successful_image.append(BASE_URL+dishimage.dishImage.url)
+            compare_dish_time_stall_time(dish,staff.stallID)
             data["code"] = 200
             data["message"] = "successful operation"
             data["data"] = {
@@ -932,7 +945,6 @@ def dish_detail(request,dishID):
         serializers = CreateDishDetailSerializer(dish, data=request_data)
         if serializers.is_valid():
             serializers.save()
-
             if request.data["deleteImages"]:
                 try:
                     delete_list = dict((request.data).lists())['deleteImages']
@@ -955,6 +967,7 @@ def dish_detail(request,dishID):
                     if imageserializer.is_valid():
                         dishimage = imageserializer.save()
                         successful_image.append(BASE_URL+dishimage.dishImage.url)
+            compare_dish_time_stall_time(dish,staff.stallID)
             data["code"] = 200
             data["message"] = "successful operation"
             data["data"] = {"dishImages":successful_image}

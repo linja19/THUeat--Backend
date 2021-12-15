@@ -9,3 +9,4 @@ static/images/notice/
 static/images/review/
 static/images/stall/
 static/images/user/
+*/.env
