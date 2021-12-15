@@ -108,7 +108,7 @@ def format_stall_dish(dish,user,login):
         data["dishImages"] = BASE_URL + image_list[0].dishImage.url
     except:
         pass
-    data["dishPrice"] = dish.dishPrice
+    data["dishPrice"] = '{0:.2f}'.format(dish.dishPrice)
     data["dishLikes"] = dish.dishLikes
     if login:
         if LikeDish.objects.filter(userID=user.pk, dishID=dish.pk).exists():
@@ -303,7 +303,7 @@ def format_dish(dish,user,login):
     data = {}
     data["dishName"] = dish.dishName
     data["dishIntro"] = dish.dishDescribe
-    data["dishPrice"] = dish.dishPrice
+    data["dishPrice"] = '{0:.2f}'.format(dish.dishPrice)
     image_list = DishImage.objects.filter(dishID=dish.pk)
     data["dishImages"] = [BASE_URL + image.dishImage.url for image in image_list]
     data["dishLikes"] = dish.dishLikes
@@ -360,7 +360,7 @@ def format_recommend_dish(dish,user,login):
     data["dishID"] = dish.dishID
     data["dishName"] = dish.dishName
     # data["dishIntro"] = dish.dishDescribe
-    data["dishPrice"] = dish.dishPrice
+    data["dishPrice"] = '{0:.2f}'.format(dish.dishPrice)
     image_list = DishImage.objects.filter(dishID=dish.pk)
     data["dishImages"] = ""
     try:
