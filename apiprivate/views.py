@@ -840,15 +840,19 @@ def create_reply(request,reviewID):
             "stallID":staff.stallID.pk
         }
         replyserializer = ReplySerializer(data=request_data)
-        if replyserializer.is_valid() and not review.reply:
-            replyserializer.save()
+        if review.reply:
+            reply = ReplyByStaff.objects.get(parent_reviewID=reviewID)
+            reply.delete()
+        if replyserializer.is_valid():
+            reply = replyserializer.save()
             review.reply = True
             review.save()
             data["code"] = 200
             data["message"] = "successful operation"
+            data["data"] = {"replyDateTime":reply.replyDateTime}
         else:
             data["code"] = 400
-            data["message"] = "此评论已被回复"
+            data["message"] = "发生了一些错误"
     return Response(data)
 
 @api_view(['GET','POST'])
