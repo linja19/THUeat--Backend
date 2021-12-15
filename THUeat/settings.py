@@ -12,6 +12,10 @@ https://docs.djangoproject.com/en/3.2/ref/settings/
 
 from pathlib import Path
 import os
+import environ
+
+env = environ.Env()
+environ.Env.read_env()
 
 BASE_URL = "https://linja19.pythonanywhere.com"
 
@@ -96,9 +100,9 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'linja19$django_database',
-        'USER': 'linja19',
-        'PASSWORD': 'thueat2021',
-        'HOST': 'linja19.mysql.pythonanywhere-services.com',
+        'USER': env('DATABASE_USER'),
+        'PASSWORD': env('DATABASE_PASSWORD'),
+        'HOST': env('DATABASE_HOST'),
         'OPTIONS': {
          "init_command": "SET foreign_key_checks = 0;",
         },
@@ -163,8 +167,8 @@ STATICFILES_DIRS = [
 MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
+EMAIL_HOST = env('EMAIL_HOST')
+EMAIL_PORT = env('EMAIL_PORT')
 EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'kiensiau11301130@gmail.com'
-EMAIL_HOST_PASSWORD = 'cxiuukaeirqzodfc'
+EMAIL_HOST_USER = env('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
