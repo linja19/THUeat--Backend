@@ -109,7 +109,7 @@ class Stall(models.Model):
     stallName = models.CharField(max_length=30)
     stallFloor = models.IntegerField(null=True)
     stallDescribe = models.CharField(max_length=300,blank=True)
-    stallRate = models.FloatField(blank=True,null=True)
+    stallRate = models.FloatField(blank=True,null=True,default=0)
     stallRateNum = models.IntegerField(blank=True,null=True,default=0)
     canteenID = models.ForeignKey(Canteen,on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
@@ -160,7 +160,7 @@ class Dish(models.Model):
 
     dishID = models.BigAutoField(primary_key=True)
     dishName = models.CharField(max_length=30)
-    dishPrice = models.FloatField()
+    dishPrice = models.DecimalField(decimal_places=2,max_digits=6,default=0)
     # dishImage = models.ImageField(upload_to=get_file_path_dish, default="default/default_dish.jpg", null=True,
     #                                blank=True)
     dishDescribe = models.CharField(max_length=300, blank=True)
