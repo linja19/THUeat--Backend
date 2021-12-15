@@ -286,7 +286,7 @@ def format_mystall(stall):
 
 def calculate_canteen_rate(canteen):
     stall_list = Stall.objects.filter(canteenID=canteen.canteenID)
-    rate = stall_list.aggregate(models.Avg('stallRate'))["stallRate__avg"]
+    rate = round(stall_list.aggregate(models.Avg('stallRate'))["stallRate__avg"],1)
     return rate
 
 def get_best_dish_name(stall):
@@ -305,8 +305,24 @@ def dish_available_time_encode(time_list):
             session_list.append("晚餐")
         if "宵夜" in session:
             session_list.append("宵夜")
+        if "自定义" in session:
+            session_list = ["自定义"]
     session_data = ",".join(session_list)
     return session_data
+
+def compare_dish_time_stall_time(dish,stall):
+    dish_time = dish_available_time_decode(dish.dishAvailableTime)
+    stall_time = stall_operation_time_session_decode(stall.stallOperationtime)
+    if "自定义" in stall_time:
+        dish.dishAvailableTime = "自定义"
+        dish.save()
+        return
+    new_dish_time = []
+    for each in dish_time:
+        if each in stall_time:
+            new_dish_time.append(each)
+    dish.dishAvailableTime = dish_available_time_encode(new_dish_time)
+    dish.save()
 
 def dish_available_time_decode(time):
     time_list = time.split(',')
