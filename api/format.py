@@ -154,6 +154,8 @@ def format_stall_review(review,user,login):
     else:
         data["myReviewLike"] = None
     data["reply"] = review.reply
+    data["replyDateTime"] = ""
+    data["replyComment"] = ""
     if review.reply:
         reply = ReplyByStaff.objects.get(parent_reviewID=review.pk)
         data["replyDateTime"] = reply.replyDateTime
@@ -277,6 +279,8 @@ def format_myreview(review):
     data["reviewTags"] = review_tags_decode(review.reviewTags)
     data["reviewLikes"] = review.reviewLikes
     data["reply"] = review.reply
+    data["replyDateTime"] = ""
+    data["replyComment"] = ""
     dishes = []
     if review.reply:
         reply = ReplyByStaff.objects.get(parent_reviewID=review.pk)
@@ -349,6 +353,8 @@ def format_dish_review(dishreview,user,login):
         data["myReviewLike"] = None
 
     data["reply"] = dishreview.reviewID.reply
+    data["replyDateTime"] = ""
+    data["replyComment"] = ""
     if dishreview.reviewID.reply:
         reply = ReplyByStaff.objects.get(parent_reviewID=dishreview.reviewID.pk)
         data["replyDateTime"] = reply.replyDateTime
