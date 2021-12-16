@@ -324,7 +324,7 @@ def format_dish(dish,user,login):
 
 def review_tags_decode(tags):
     if tags:
-        return tags.split("/")
+        return tags.split(",")
     else:
         return []
 

@@ -142,7 +142,7 @@ def format_stall_list(stall_list):
 
 def review_tags_decode(tags):
     if tags:
-        return tags.split("/")
+        return tags.split(",")
     else:
         return []
 

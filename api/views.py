@@ -367,10 +367,10 @@ def reviews(request):
             data["code"] = 404
             data["message"] = "档口不存在"
             return Response(data)
-        review_tags = dict((request.data).lists())["reviewTags"]
+        # review_tags = dict((request.data).lists())["reviewTags"]
         review_data = {
             "reviewComment":request.data["reviewComment"],
-            "reviewTags":review_tags_encode(review_tags),
+            "reviewTags":request.data["reviewTags"],
             "rate":request.data["rate"],
             "userID":user.pk,
             "stallID":stallID
