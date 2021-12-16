@@ -286,7 +286,7 @@ def format_mystall(stall):
 
 def calculate_canteen_rate(canteen):
     stall_list = Stall.objects.filter(canteenID=canteen.canteenID)
-    rate = round(stall_list.aggregate(models.Avg('stallRate'))["stallRate__avg"],1)
+    rate = round(stall_list.exclude(stallRate=0).aggregate(models.Avg('stallRate'))["stallRate__avg"],1)
     return rate
 
 def get_best_dish_name(stall):

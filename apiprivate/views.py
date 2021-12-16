@@ -871,7 +871,10 @@ def dish(request):
         dish_list = Dish.objects.filter(stallID=staff.stallID)
         data["code"] = 200
         data["message"] = "successful operation"
-        data["data"] = format_dish_list(dish_list)
+        data["data"] = {
+            "stallOperationtime":stall_operation_time_session_decode(staff.stallID.stallOperationtime),
+            "dishes":format_dish_list(dish_list)
+        }
     elif request.method=="POST":
         if data_is_incomplete(request,"dishAvailableTime","dishName","dishIntro","dishPrice"):
             return Response(incomplete_info)
