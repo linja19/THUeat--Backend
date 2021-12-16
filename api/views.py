@@ -300,28 +300,22 @@ def canteens(request,canteenID):
 def recommendstall(request):
     data = {}
     if request.method=='GET':
+        stall_list = Stall.objects.all().exclude(is_active=False).exclude(stallRate=0)     # get all stall
         try:
-            ratings = request.query_params["ratings"]
+            ratings = request.query_params["ratings"]                                      # try get ratings in url
             if ratings=="True":
-                ratings = True
-            else:
-                ratings = False
+                stall_list = Stall.objects.order_by("-stallRate")\
+                    .exclude(is_active=False).exclude(stallRate=0)                         # sort stall list by ratings
         except:
-            ratings = False
+            pass
         try:
-            numbers = int(request.query_params["numbers"])
-            if ratings:
-                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False).exclude(stallRate=0)[:numbers]
-            else:
-                stall_list = Stall.objects.all().exclude(is_active=False).exclude(stallRate=0)[:numbers]
+            numbers = int(request.query_params["numbers"])                                 # try get numbers in url
+            stall_list = stall_list[:numbers]                                    # filter stall list to specific number
         except:
-            if ratings:
-                stall_list = Stall.objects.order_by("-stallRate").exclude(is_active=False).exclude(stallRate=0)
-            else:
-                stall_list = Stall.objects.all().exclude(is_active=False).exclude(stallRate=0)
+            pass
         data["code"] = 200
         data["message"] = "successful operation"
-        data["data"] = format_recommend_stall_list(stall_list)
+        data["data"] = format_recommend_stall_list(stall_list)              # format stall list to some specific format
     return Response(data)
 
 @api_view(["GET"])
