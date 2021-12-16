@@ -291,8 +291,11 @@ def calculate_canteen_rate(canteen):
 
 def get_best_dish_name(stall):
     dish_list = Dish.objects.filter(stallID=stall.stallID)
-    best_dish = dish_list.order_by("-dishLikes")[0]
-    return best_dish.dishName
+    if dish_list:
+        best_dish = dish_list.order_by("-dishLikes")[0]
+        return best_dish.dishName
+    else:
+        return ""
 
 def dish_available_time_encode(time_list):
     session_list = []
