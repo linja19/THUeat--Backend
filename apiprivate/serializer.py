@@ -90,7 +90,7 @@ class CreateNoticeSerializer(serializers.ModelSerializer):
 class CreateStallSerializer(serializers.ModelSerializer):
     class Meta:
         model = Stall
-        fields = ["stallName","stallFloor","canteenID","stallOperationtime"]
+        fields = ["stallName","stallFloor","canteenID","stallOperationtime","stallDescribe"]
 
 class ReplySerializer(serializers.ModelSerializer):
     class Meta:

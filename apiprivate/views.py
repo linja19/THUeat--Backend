@@ -649,7 +649,8 @@ def stalls(request):
             "stallName":request.data["stallName"],
             "stallFloor": request.data["stallFloor"],
             "canteenID": request.data["canteenID"],
-            "stallOperationtime": "C-06:30-06:30"
+            "stallOperationtime": "C-06:30-06:30",
+            "stallDescribe":"在这里介绍您的档口"
         }
         stallserializer = CreateStallSerializer(data=request_data)
         if stallserializer.is_valid():
