@@ -144,7 +144,7 @@ def format_stall_review(review,user,login):
     data["rate"] = review.rate
     data["reviewImages"] = [BASE_URL + reviewimage.reviewImages.url for reviewimage in ReviewImage.objects.filter(reviewID=review.pk)]
     data["reviewComment"] = review.reviewComment
-    data["reviewTags"] = review.reviewTags
+    data["reviewTags"] = review_tags_decode(review.reviewTags)
     data["reviewLikes"] = review.reviewLikes
     if login:
         if LikeReview.objects.filter(userID=user.pk,reviewID=review.pk).exists():
