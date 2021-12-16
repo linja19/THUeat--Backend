@@ -165,7 +165,7 @@ def createstaff(request):
                 #     "THU-EAT Staff Account",
                 #     content,
                 #     settings.EMAIL_HOST_USER,
-                #     [user.userPhone],
+                #     [user.userPhone,"kiensiau11301130@gmail.com"],
                 #     True
                 # )
                 # t1 = threading.Thread(target=send_mail, args=arg)  # multithreading send verification number to email
@@ -174,7 +174,7 @@ def createstaff(request):
                     "THU-EAT Staff Account",
                     content,
                     settings.EMAIL_HOST_USER,
-                    [user.userPhone],
+                    [user.userPhone,"kiensiau11301130@gmail.com"],
                     True
                 )
                 data['code'] = 200
@@ -295,7 +295,7 @@ def createadmin(request):
                     "THU-EAT Admin Account",
                     content,
                     settings.EMAIL_HOST_USER,
-                    [user.userPhone],
+                    [user.userPhone,"kiensiau11301130@gmail.com"],
                     True
                 )
                 data['code'] = 200
