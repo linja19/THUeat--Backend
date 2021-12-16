@@ -850,7 +850,7 @@ def dish(request):
         data["code"] = 200
         data["message"] = "successful operation"
         data["data"] = {
-            "stallOperationtime":operation_time_decode(staff.stallID.stallOperationtime),
+            "stallOperationtime":stall_operation_time_session_decode(staff.stallID.stallOperationtime),
             "dishes":format_dish_list(dish_list)
         }
     elif request.method=="POST":
