@@ -30,7 +30,10 @@ def format_canteen(canteen):
     data["canteenType"] = canteen.canteenType
     data["canteenOperationTime"] = canteen.canteenOperationTime
     stall_list = Stall.objects.filter(canteenID=canteen.pk, is_active=True)
-    data["canteenRate"] = round(stall_list.exclude(stallRate=0).aggregate(models.Avg('stallRate'))["stallRate__avg"],1)
+    calculate_list = stall_list.exclude(stallRate=0)
+    data["canteenRate"] = 0
+    if calculate_list:
+        data["canteenRate"] = round(stall_list.exclude(stallRate=0).aggregate(models.Avg('stallRate'))["stallRate__avg"],1)
     stalls = []
     for stall in stall_list:
         stall_dic = {}
