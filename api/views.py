@@ -372,8 +372,12 @@ def reviews(request):
             data["message"] = "档口不存在"
             return Response(data)
         # review_tags = dict((request.data).lists())["reviewTags"]
+        if request.data["reviewComment"]=="":
+            comment = "无评价，系统默认好评。"
+        else:
+            comment = request.data["reviewComment"]
         review_data = {
-            "reviewComment":request.data["reviewComment"],
+            "reviewComment":comment,
             "reviewTags":request.data["reviewTags"],
             "rate":request.data["rate"],
             "userID":user.pk,
