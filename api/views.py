@@ -293,6 +293,10 @@ def navigations_stall(request,stallID):
 def canteens(request,canteenID):
     data = {}
     if request.method=='GET':
+        canteen = Canteen.objects.get(canteenID=canteenID)
+        data["code"] = 200
+        data["message"] = "successful operation"
+        data["data"] = format_canteen(canteen)
         try:
             canteen = Canteen.objects.get(canteenID=canteenID)
             data["code"] = 200
